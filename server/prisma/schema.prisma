@@ -1,0 +1,155 @@
+// This is your Prisma schema file — SQLite compatible (no enums)
+// Learn more at https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Role values: ELDER | MONITOR
+model User {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  passwordHash  String
+  role          String   @default("ELDER")  // ELDER | MONITOR
+  phone         String?
+  avatar        String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  connectionsAsMonitor Connection[] @relation("MonitorConnections")
+  remindersCreated     Reminder[]   @relation("MonitorReminders")
+  connectionsAsElder   Connection[] @relation("ElderConnections")
+  remindersReceived    Reminder[]   @relation("ElderReminders")
+  alertsReceived       Alert[]
+  chatMessages         ChatMessage[]
+}
+
+// status values: PENDING | ACTIVE | REJECTED
+model Connection {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  monitor   User     @relation("MonitorConnections", fields: [monitorId], references: [id], onDelete: Cascade)
+  monitorId String
+  elder     User?    @relation("ElderConnections", fields: [elderId], references: [id], onDelete: SetNull)
+  elderId   String?
+  status    String   @default("PENDING")  // PENDING | ACTIVE | REJECTED
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// type values: MEDICINE | MEAL | WATER | EXERCISE | APPOINTMENT | CUSTOM
+// repeatRule values: ONCE | DAILY | WEEKLY | MONTHLY
+model Reminder {
+  id            String   @id @default(uuid())
+  title         String
+  description   String?
+  type          String   @default("CUSTOM")    // MEDICINE | MEAL | WATER | EXERCISE | APPOINTMENT | CUSTOM
+  scheduledTime String                         // HH:MM format
+  repeatRule    String   @default("DAILY")     // ONCE | DAILY | WEEKLY | MONTHLY
+  scheduledDays String?                        // JSON array e.g. ["MON","WED","FRI"]
+  isActive      Boolean  @default(true)
+
+  monitor   User   @relation("MonitorReminders", fields: [monitorId], references: [id], onDelete: Cascade)
+  monitorId String
+  elder     User   @relation("ElderReminders", fields: [elderId], references: [id], onDelete: Cascade)
+  elderId   String
+
+  logs      ReminderLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// status values: PENDING | CONFIRMED | MISSED | SNOOZED
+model ReminderLog {
+  id          String    @id @default(uuid())
+  reminder    Reminder  @relation(fields: [reminderId], references: [id], onDelete: Cascade)
+  reminderId  String
+  triggeredAt DateTime  @default(now())
+  respondedAt DateTime?
+  status      String    @default("PENDING")   // PENDING | CONFIRMED | MISSED | SNOOZED
+  snoozeUntil DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+// severity values: LOW | MEDIUM | HIGH | CRITICAL
+model Alert {
+  id        String   @id @default(uuid())
+  elder     User     @relation(fields: [elderId], references: [id], onDelete: Cascade)
+  elderId   String
+  type      String                            // FALL | FIRE | MOOD | HEALTH | MANUAL | CUSTOM
+  message   String
+  severity  String   @default("HIGH")         // LOW | MEDIUM | HIGH | CRITICAL
+  source    String   @default("SYSTEM")       // FALL_DETECTION | MOOD_DETECTION | HEALTH_PREDICTION | MANUAL | SYSTEM
+  metadata  String?                           // JSON blob
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+// role values: USER | BOT
+model ChatMessage {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  role      String                            // USER | BOT
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model HealthData {
+  id            String   @id @default(uuid())
+  elderId       String
+  heartRate     Float?
+  bloodPressure String?
+  bloodOxygen   Float?
+  steps         Int?
+  moodScore     Float?
+  moodLabel     String?
+  source        String   @default("AI_SERVICE")
+  recordedAt    DateTime @default(now())
+  createdAt     DateTime @default(now())
+}
+
+// ─── Direct Messaging (Elder ↔ Monitor) ──────────────────────────────────────
+model DirectMessage {
+  id         String   @id @default(uuid())
+  senderId   String
+  receiverId String
+  content    String
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+// ─── Calendar Events ─────────────────────────────────────────────────────────
+// type values: DOCTOR | BANK | VISIT | CUSTOM
+// repeatRule values: ONCE | DAILY | WEEKLY | MONTHLY
+model CalendarEvent {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  date        String                          // YYYY-MM-DD
+  time        String?                         // HH:MM (optional)
+  type        String   @default("CUSTOM")     // DOCTOR | BANK | VISIT | CUSTOM
+  repeatRule  String   @default("ONCE")       // ONCE | DAILY | WEEKLY | MONTHLY
+  monitorId   String
+  elderId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── Elder Location Tracking ─────────────────────────────────────────────────
+model ElderLocation {
+  id        String   @id @default(uuid())
+  elderId   String
+  latitude  Float
+  longitude Float
+  accuracy  Float?
+  createdAt DateTime @default(now())
+}

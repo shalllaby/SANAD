@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>واجهة كبير السن — SANAD - سند</title>
+    <meta name="description" content="واجهة كبار السن في نظام SANAD - سند" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="stylesheet" href="/css/global.css" />
+    <style>
+        body {
+            background: linear-gradient(160deg, #0B1929 0%, #0E2240 60%, #0B1929 100%);
+            min-height: 100vh;
+        }
+
+        .elder-layout {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 1rem;
+            padding-bottom: 120px;
+        }
+
+        /* ─── Header ─────────────────────────────────────────────── */
+        .elder-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem;
+            background: rgba(15, 30, 52, 0.8);
+            border-radius: var(--radius-xl);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .elder-header-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .elder-header-logo img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+        }
+
+        .elder-header-logo span {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--secondary-light);
+        }
+
+        .elder-greeting {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #F1F5F9;
+        }
+
+        .elder-time {
+            font-size: 0.9rem;
+            color: #94A3B8;
+            margin-top: 0.35rem;
+        }
+
+        .elder-avatar-big {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            box-shadow: 0 4px 20px rgba(27, 95, 173, 0.4);
+        }
+
+        /* ─── Emergency Button ───────────────────────────────────── */
+        .emergency-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            width: 100%;
+            padding: 1.75rem;
+            background: linear-gradient(135deg, #DC2626, #EF4444);
+            border: none;
+            border-radius: var(--radius-xl);
+            color: white;
+            font-size: 1.6rem;
+            font-weight: 900;
+            font-family: var(--font);
+            cursor: pointer;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 6px 25px rgba(220, 38, 38, 0.45);
+            transition: var(--transition);
+            animation: emergencyPulse 3s ease-in-out infinite;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .emergency-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 35px rgba(220, 38, 38, 0.6);
+        }
+
+        .emergency-btn:active {
+            transform: scale(0.97);
+        }
+
+        .emergency-btn:disabled {
+            opacity: 0.6;
+            pointer-events: none;
+            animation: none;
+        }
+
+        .emergency-btn .icon {
+            font-size: 2.5rem;
+        }
+
+        @keyframes emergencyPulse {
+
+            0%,
+            100% {
+                box-shadow: 0 6px 25px rgba(220, 38, 38, 0.45);
+            }
+
+            50% {
+                box-shadow: 0 6px 35px rgba(220, 38, 38, 0.7);
+            }
+        }
+
+        /* ─── ALARM OVERLAY (full-screen) ────────────────────────── */
+        .alarm-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.92);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 2rem;
+            animation: alarmFlash 1.5s ease-in-out infinite;
+        }
+
+        .alarm-overlay.active {
+            display: flex;
+        }
+
+        @keyframes alarmFlash {
+
+            0%,
+            100% {
+                background: rgba(0, 0, 0, 0.92);
+            }
+
+            50% {
+                background: rgba(120, 0, 0, 0.92);
+            }
+        }
+
+        .alarm-icon {
+            font-size: 6rem;
+            animation: alarmShake 0.5s ease-in-out infinite;
+            line-height: 1;
+            margin-bottom: 1.5rem;
+        }
+
+        @keyframes alarmShake {
+
+            0%,
+            100% {
+                transform: rotate(0deg);
+            }
+
+            25% {
+                transform: rotate(-15deg);
+            }
+
+            75% {
+                transform: rotate(15deg);
+            }
+        }
+
+        .alarm-title {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: white;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .alarm-subtitle {
+            font-size: 1.1rem;
+            color: #94A3B8;
+            text-align: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .alarm-time-label {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--secondary-light);
+            margin-bottom: 2.5rem;
+        }
+
+        .alarm-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .alarm-btn {
+            width: 100%;
+            padding: 1.5rem;
+            font-size: 1.5rem;
+            font-weight: 900;
+            font-family: var(--font);
+            border: none;
+            border-radius: var(--radius-xl);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .alarm-btn-confirm {
+            background: linear-gradient(135deg, #22C55E, #16A34A);
+            color: white;
+            box-shadow: 0 6px 25px rgba(34, 197, 94, 0.4);
+        }
+
+        .alarm-btn-confirm:hover {
+            transform: scale(1.02);
+        }
+
+        .alarm-btn-snooze {
+            background: linear-gradient(135deg, var(--accent), #E8960D);
+            color: white;
+            box-shadow: 0 6px 25px rgba(245, 166, 35, 0.4);
+        }
+
+        .alarm-btn-snooze:hover {
+            transform: scale(1.02);
+        }
+
+        /* ─── Reminder Cards ─────────────────────────────────────── */
+        .reminder-card {
+            background: rgba(15, 30, 52, 0.75);
+            border: 1.5px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+            animation: fadeSlideIn 0.4s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .reminder-card:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .reminder-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+        }
+
+        .reminder-card.type-MEDICINE::before {
+            background: linear-gradient(90deg, #EF4444, #F87171);
+        }
+
+        .reminder-card.type-MEAL::before {
+            background: linear-gradient(90deg, var(--accent), var(--accent-light));
+        }
+
+        .reminder-card.type-WATER::before {
+            background: linear-gradient(90deg, var(--info), #38BDF8);
+        }
+
+        .reminder-card.type-EXERCISE::before {
+            background: linear-gradient(90deg, var(--success), var(--success-light));
+        }
+
+        .reminder-card.type-CUSTOM::before,
+        .reminder-card.type-APPOINTMENT::before {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .reminder-emoji {
+            font-size: 4rem;
+            margin-bottom: 0.75rem;
+            display: block;
+            line-height: 1;
+        }
+
+        .reminder-title-big {
+            font-size: 1.85rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            color: #F1F5F9;
+        }
+
+        .reminder-desc-big {
+            color: #94A3B8;
+            font-size: 1.05rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-elder {
+            padding: 1.2rem 2.2rem;
+            font-size: 1.3rem;
+            border-radius: var(--radius-xl);
+            font-weight: 800;
+            min-width: 170px;
+        }
+
+        .btn-group-elder {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* ─── Alert bar ──────────────────────────────────────────── */
+        .alert-elder {
+            background: rgba(239, 68, 68, 0.12);
+            border: 2px solid rgba(239, 68, 68, 0.35);
+            border-radius: var(--radius-xl);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            animation: pulse 2s infinite;
+        }
+
+        .alert-elder .alert-icon {
+            font-size: 3rem;
+        }
+
+        .alert-elder-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #F1F5F9;
+        }
+
+        /* ─── Sections ───────────────────────────────────────────── */
+        .section-elder {
+            margin-bottom: 1.75rem;
+        }
+
+        .section-elder-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #CBD5E1;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        /* ─── Schedule items ─────────────────────────────────────── */
+        .schedule-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.1rem 1.25rem;
+            background: rgba(15, 30, 52, 0.7);
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            margin-bottom: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .schedule-item:hover {
+            border-color: rgba(255, 255, 255, 0.10);
+            background: rgba(15, 30, 52, 0.85);
+        }
+
+        .schedule-time {
+            font-size: 1.15rem;
+            font-weight: 800;
+            min-width: 60px;
+            color: var(--secondary-light);
+        }
+
+        .schedule-label {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #F1F5F9;
+            flex: 1;
+        }
+
+        .schedule-status {
+            font-size: 1.35rem;
+        }
+
+        /* ─── Calendar events ────────────────────────────────────── */
+        .event-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.9rem 1rem;
+            background: rgba(15, 30, 52, 0.7);
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            margin-bottom: 0.4rem;
+        }
+
+        .event-type-icon {
+            font-size: 1.3rem;
+        }
+
+        .event-title {
+            font-weight: 600;
+            color: #F1F5F9;
+            font-size: 1rem;
+        }
+
+        .event-time-label {
+            font-size: 0.85rem;
+            color: #94A3B8;
+        }
+
+        /* ─── Chat Overlay (from FAB) ───────────────────────────── */
+        .chat-overlay {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-width: 500px;
+            margin: 0 auto;
+            height: 70vh;
+            max-height: 550px;
+            background: #0E2240;
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+            box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.5);
+            display: none;
+            flex-direction: column;
+            z-index: 200;
+            animation: slideUp 0.3s ease;
+        }
+
+        .chat-overlay.active {
+            display: flex;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .chat-overlay-header {
+            padding: 1rem 1.25rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+        }
+
+        .chat-overlay-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            color: #F1F5F9;
+            font-size: 1.05rem;
+        }
+
+        .chat-close-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .chat-messages-box {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .dm-msg {
+            max-width: 80%;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-lg);
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .dm-msg.sent {
+            align-self: flex-start;
+            background: rgba(27, 95, 173, 0.3);
+            border: 1px solid rgba(27, 95, 173, 0.4);
+            color: #F1F5F9;
+            border-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) 2px;
+        }
+
+        .dm-msg.received {
+            align-self: flex-end;
+            background: rgba(43, 191, 179, 0.2);
+            border: 1px solid rgba(43, 191, 179, 0.3);
+            color: #F1F5F9;
+            border-radius: var(--radius-lg) var(--radius-lg) 2px var(--radius-lg);
+        }
+
+        .dm-time {
+            font-size: 0.7rem;
+            color: #64748B;
+            margin-top: 0.15rem;
+        }
+
+        .chat-input-row {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .chat-input-row input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-lg);
+            padding: 0.85rem 1rem;
+            font-family: var(--font);
+            font-size: 1.05rem;
+            color: #F1F5F9;
+            direction: rtl;
+        }
+
+        .chat-input-row input::placeholder {
+            color: #64748B;
+        }
+
+        .chat-input-row input:focus {
+            outline: none;
+            border-color: var(--primary-light);
+        }
+
+        .chat-send-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            color: white;
+            font-size: 1.15rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .chat-send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* ─── Backdrop for chat overlay ──────────────────────────── */
+        .chat-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 199;
+        }
+
+        .chat-backdrop.active {
+            display: block;
+        }
+
+        /* ─── Floating Action Buttons (FABs) ─────────────────────── */
+        .fabs-container {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            z-index: 50;
+        }
+
+        .fab {
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+        }
+
+        .fab-monitor {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            box-shadow: 0 6px 25px rgba(27, 95, 173, 0.5);
+        }
+
+        .fab-chatbot {
+            background: linear-gradient(135deg, var(--secondary), var(--secondary-dark, #1A9B8F));
+            box-shadow: 0 6px 25px rgba(43, 191, 179, 0.4);
+        }
+
+        .fab-tooltip {
+            position: absolute;
+            left: calc(100% + 10px);
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(15, 30, 52, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-full);
+            padding: 0.4rem 0.85rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            white-space: nowrap;
+            color: #F1F5F9;
+            backdrop-filter: blur(10px);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .fab:hover .fab-tooltip {
+            opacity: 1;
+        }
+
+        .fab-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: var(--danger);
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 999px;
+            min-width: 18px;
+            text-align: center;
+            border: 2px solid #0E2240;
+            display: none;
+        }
+
+        /* ─── Unread dot ─────────────────────────────────────────── */
+        .unread-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--danger);
+            display: inline-block;
+            margin-right: 0.25rem;
+            animation: pulse 2s infinite;
+        }
+
+        /* ─── Empty states ───────────────────────────────────────── */
+        .empty-reminders {
+            text-align: center;
+            padding: 2.5rem 1rem;
+        }
+
+        .empty-reminders .icon {
+            font-size: 4rem;
+            display: block;
+            margin-bottom: 0.75rem;
+        }
+
+        .empty-reminders p {
+            font-size: 1.15rem;
+            color: #94A3B8;
+        }
+
+        /* ─── Logout ─────────────────────────────────────────────── */
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: var(--radius-md);
+            padding: 0.45rem 0.85rem;
+            color: #FCA5A5;
+            font-family: var(--font);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        /* ─── Responsive ─────────────────────────────────────────── */
+        @media (max-width: 480px) {
+            .elder-greeting {
+                font-size: 1.2rem;
+            }
+
+            .reminder-title-big {
+                font-size: 1.5rem;
+            }
+
+            .btn-elder {
+                padding: 1rem 1.5rem;
+                font-size: 1.1rem;
+                min-width: 140px;
+            }
+
+            .elder-avatar-big {
+                width: 52px;
+                height: 52px;
+                font-size: 1.8rem;
+            }
+
+            .emergency-btn {
+                font-size: 1.3rem;
+                padding: 1.25rem;
+            }
+
+            .alarm-title {
+                font-size: 1.8rem;
+            }
+
+            .alarm-icon {
+                font-size: 4.5rem;
+            }
+
+            .alarm-btn {
+                font-size: 1.25rem;
+                padding: 1.25rem;
+            }
+
+            .fab {
+                width: 60px;
+                height: 60px;
+                font-size: 1.7rem;
+            }
+
+            .fabs-container {
+                bottom: 1rem;
+                left: 1rem;
+                gap: 0.6rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="elder-layout animate-fade-in">
+        <!-- Header -->
+        <div class="elder-header">
+            <div>
+                <div class="elder-header-logo">
+                    <img src="/logo.png" alt="SANAD - سند" />
+                    <span>SANAD - سند</span>
+                </div>
+                <div class="elder-greeting">أهلاً يا <span id="elderName">...</span> 👋</div>
+                <div class="elder-time" id="currentTime">...</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.75rem;">
+                <button class="logout-btn" onclick="logout()">خروج</button>
+                <div class="elder-avatar-big">👴</div>
+            </div>
+        </div>
+
+        <!-- Emergency Button -->
+        <button class="emergency-btn" id="emergencyBtn" onclick="sendEmergency()">
+            <span class="icon">🚨</span>
+            <span>أنا في خطر!</span>
+        </button>
+
+        <!-- Critical Alerts -->
+        <div id="criticalAlerts"></div>
+
+        <!-- Active Reminders -->
+        <div class="section-elder">
+            <div class="section-elder-title">🔔 التذكيرات النشطة</div>
+            <div id="activeReminders">
+                <div class="empty-reminders"><span class="icon">✨</span>
+                    <p>ما فيش تذكيرات دلوقتي<br><small style="font-size:0.85rem; color: #64748B;">استمتع بوقتك!</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Today's Schedule (merged reminders + calendar events) -->
+        <div class="section-elder">
+            <div class="section-elder-title">📅 جدول اليوم</div>
+            <div id="todaySchedule">
+                <div class="empty-reminders"><span class="icon">📅</span>
+                    <p style="color: #94A3B8;">جدولك فاضي النهارده</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Past Alerts -->
+        <div class="section-elder" id="alertsSection" style="display:none;">
+            <div class="section-elder-title">🚨 التنبيهات</div>
+            <div id="elderAlertsList"></div>
+        </div>
+    </div>
+
+    <!-- ═══════════════ ALARM OVERLAY ═══════════════ -->
+    <div class="alarm-overlay" id="alarmOverlay">
+        <div class="alarm-icon" id="alarmIcon">💊</div>
+        <div class="alarm-title" id="alarmTitle">وقت الدوا!</div>
+        <div class="alarm-subtitle" id="alarmSubtitle"></div>
+        <div class="alarm-time-label" id="alarmTimeLabel">08:00</div>
+        <div class="alarm-actions">
+            <button class="alarm-btn alarm-btn-confirm" id="alarmConfirmBtn">✅ تم أخذ الدواء</button>
+            <button class="alarm-btn alarm-btn-snooze" id="alarmSnoozeBtn">⏰ تأجيل ٥ دقايق</button>
+        </div>
+    </div>
+
+    <!-- ═══════════════ CHAT OVERLAY (Monitor DM) ═══════════════ -->
+    <div class="chat-backdrop" id="chatBackdrop" onclick="closeChatOverlay()"></div>
+    <div class="chat-overlay" id="chatOverlay">
+        <div class="chat-overlay-header">
+            <div class="chat-overlay-title">
+                <span>👨‍💼</span>
+                <span id="chatMonitorName">المسؤول</span>
+            </div>
+            <button class="chat-close-btn" onclick="closeChatOverlay()">✕</button>
+        </div>
+        <div class="chat-messages-box" id="dmMessages">
+            <div style="text-align:center; color:#64748B; padding:2rem; font-size:1rem;">ابدأ محادثة مع المسؤول...</div>
+        </div>
+        <div class="chat-input-row">
+            <input type="text" id="dmInput" placeholder="اكتب رسالة..." onkeydown="if(event.key==='Enter') sendDM()" />
+            <button class="chat-send-btn" onclick="sendDM()">➤</button>
+        </div>
+    </div>
+
+    <!-- ═══════════════ FLOATING ACTION BUTTONS ═══════════════ -->
+    <div class="fabs-container">
+        <!-- Chat with Monitor -->
+        <button class="fab fab-monitor" onclick="openChatOverlay()" id="fabMonitor">
+            👨‍💼
+            <span class="fab-badge" id="fabChatBadge">0</span>
+            <span class="fab-tooltip">محادثة المسؤول</span>
+        </button>
+        <!-- AI Chatbot -->
+        <button class="fab fab-chatbot" onclick="window.location.href='/chat.html'">
+            🤖
+            <span class="fab-tooltip">مساعد سند الذكي</span>
+        </button>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/sounds.js"></script>
+    <script src="/js/elder.js"></script>
+</body>
+
+</html>

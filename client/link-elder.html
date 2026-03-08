@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ربط حساب كبير سن — SANAD - سند</title>
+    <meta name="description" content="ربط حساب كبير سن في نظام SANAD - سند" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="stylesheet" href="/css/global.css" />
+    <style>
+        body {
+            background: linear-gradient(160deg, #0B1929 0%, #0E2240 50%, #0B1929 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        /* Decorative gradient orb */
+        body::before {
+            content: '';
+            position: fixed;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(27, 95, 173, 0.08), transparent 70%);
+            bottom: -200px;
+            right: -200px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .link-container {
+            width: 100%;
+            max-width: 520px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .link-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .link-card {
+            background: rgba(15, 30, 52, 0.85);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .link-card-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .link-card-logo img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+        }
+
+        .link-card-logo span {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--secondary-light);
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .step {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            transition: var(--transition);
+        }
+
+        .step.active {
+            background: var(--primary);
+            width: 28px;
+            border-radius: 5px;
+            box-shadow: 0 0 8px rgba(27, 95, 173, 0.4);
+        }
+
+        .step.done {
+            background: var(--success);
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.3);
+        }
+
+        .qr-box {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 1rem;
+            display: inline-block;
+            margin: 1rem auto;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .qr-box img {
+            display: block;
+            max-width: 220px;
+        }
+
+        .code-display {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px dashed var(--primary);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .code-number {
+            font-size: 3rem;
+            font-weight: 900;
+            letter-spacing: 0.3em;
+            color: var(--primary-light);
+            font-family: monospace;
+        }
+
+        .copy-url-box {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius-md);
+            padding: 0.5rem 0.75rem;
+            margin: 0.75rem 0;
+        }
+
+        .copy-url-text {
+            flex: 1;
+            font-size: 0.8rem;
+            color: #94A3B8;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .expire-note {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #64748B;
+            margin-top: 0.75rem;
+        }
+
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #94A3B8;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .back-link:hover {
+            color: #F1F5F9;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="link-container animate-fade-in">
+        <div class="link-header">
+            <a href="/dashboard-monitor.html" class="back-link">← العودة للوحة التحكم</a>
+        </div>
+
+        <div class="link-card">
+            <div class="link-card-logo">
+                <img src="/logo.png" alt="SANAD - سند" />
+                <span>SANAD - سند</span>
+            </div>
+
+            <div class="text-center" style="margin-bottom:1.5rem;">
+                <div style="font-size:3rem; margin-bottom:0.5rem;">🔗</div>
+                <h2 style="color: #F1F5F9;">ربط حساب كبير سن</h2>
+                <p style="color: #94A3B8;">اعمل كود واديه لكبير السن عشان يربط حسابه بيك</p>
+            </div>
+
+            <div class="step-indicator">
+                <div class="step active" id="step1"></div>
+                <div class="step" id="step2"></div>
+                <div class="step" id="step3"></div>
+            </div>
+
+            <!-- Step 1: Generate -->
+            <div id="generateSection">
+                <p style="text-align:center; margin-bottom:1.5rem; color: #94A3B8;">اضغط الزر عشان ننشئ
+                    كود ربط خاص بيك وبكبير السن</p>
+                <button class="btn btn-primary btn-block btn-lg" onclick="generateConnection()" id="generateBtn">
+                    🔗 إنشاء كود الربط
+                </button>
+            </div>
+
+            <!-- Step 2: Show QR + Link (hidden initially) -->
+            <div id="resultSection" class="hidden">
+                <div class="code-display">
+                    <div style="font-size:0.8rem; color: #64748B; margin-bottom:0.25rem;">كود الربط</div>
+                    <div class="code-number" id="codeDisplay">------</div>
+                </div>
+
+                <div style="text-align:center; margin:1rem 0;">
+                    <div class="qr-box">
+                        <img id="qrImage" src="" alt="QR Code" />
+                    </div>
+                    <p style="font-size:0.8rem; color: #64748B; margin-top:0.5rem;">اتصور الـ QR Code أو شارك
+                        الرابط</p>
+                </div>
+
+                <div class="copy-url-box">
+                    <span class="copy-url-text" id="linkDisplay"></span>
+                    <button class="btn btn-secondary" style="padding:0.4rem 0.75rem; font-size:0.8rem;"
+                        onclick="copyLink()">نسخ 📋</button>
+                </div>
+
+                <div class="expire-note" id="expireNote"></div>
+
+                <div class="divider" style="background: rgba(255,255,255,0.06);"></div>
+
+                <button class="btn btn-ghost btn-block" style="color: #94A3B8; border-color: rgba(255,255,255,0.08);"
+                    onclick="generateConnection()" id="newCodeBtn">
+                    🔄 إنشاء كود جديد
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+    <script src="/js/api.js"></script>
+    <script>
+        requireAuth('MONITOR');
+        let currentLink = '';
+
+        async function generateConnection() {
+            const btn = document.getElementById('generateBtn');
+            const newBtn = document.getElementById('newCodeBtn');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> جاري الإنشاء...'; }
+            if (newBtn) { newBtn.disabled = true; newBtn.innerHTML = '<div class="spinner"></div>'; }
+
+            try {
+                const data = await api.connections.generate();
+                currentLink = data.connectUrl;
+
+                document.getElementById('codeDisplay').textContent = data.code;
+                document.getElementById('qrImage').src = data.qrCode;
+                document.getElementById('linkDisplay').textContent = data.connectUrl;
+
+                const expires = new Date(data.expiresAt);
+                document.getElementById('expireNote').textContent = `ينتهي الكود في: ${formatDateTime(data.expiresAt)}`;
+
+                document.getElementById('generateSection').classList.add('hidden');
+                document.getElementById('resultSection').classList.remove('hidden');
+
+                // Update steps
+                document.getElementById('step1').classList.remove('active');
+                document.getElementById('step1').classList.add('done');
+                document.getElementById('step2').classList.add('active');
+
+                showToast('تم إنشاء كود الربط بنجاح! 🎉', 'success');
+            } catch (err) {
+                showToast(err.message, 'error');
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerHTML = '🔗 إنشاء كود الربط'; }
+                if (newBtn) { newBtn.disabled = false; newBtn.innerHTML = '🔄 إنشاء كود جديد'; }
+            }
+        }
+
+        function copyLink() {
+            navigator.clipboard.writeText(currentLink).then(() => {
+                showToast('تم نسخ الرابط! 📋', 'success');
+                document.getElementById('step2').classList.remove('active');
+                document.getElementById('step2').classList.add('done');
+                document.getElementById('step3').classList.add('active');
+            }).catch(() => {
+                // Fallback
+                const ta = document.createElement('textarea');
+                ta.value = currentLink;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                ta.remove();
+                showToast('تم نسخ الرابط!', 'success');
+            });
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SANAD - سند | نظام رعاية كبار السن</title>
+  <meta name="description" content="SANAD - سند | منصة ذكية لمراقبة ورعاية كبار السن بالذكاء الاصطناعي" />
+  <link rel="icon" type="image/png" href="/logo.png" />
+  <link rel="stylesheet" href="/css/global.css" />
+  <style>
+    body {
+      background: linear-gradient(160deg, #0B1929 0%, #0E2240 40%, #112D4E 70%, #0B1929 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    /* Floating circles decoration */
+    body::before,
+    body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    body::before {
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(27, 95, 173, 0.12), transparent 70%);
+      top: -200px;
+      right: -200px;
+    }
+
+    body::after {
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(43, 191, 179, 0.10), transparent 70%);
+      bottom: -150px;
+      left: -150px;
+    }
+
+    .auth-container {
+      width: 100%;
+      max-width: 440px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .auth-logo {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .auth-logo img {
+      width: 90px;
+      height: 90px;
+      object-fit: contain;
+      margin: 0 auto 1rem;
+      display: block;
+      filter: drop-shadow(0 4px 20px rgba(27, 95, 173, 0.3));
+      animation: glow 3s ease-in-out infinite;
+    }
+
+    .auth-logo h1 {
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: #FFFFFF;
+      margin-bottom: 0.15rem;
+    }
+
+    .auth-logo .brand-subtitle {
+      font-size: 1rem;
+      color: var(--secondary-light);
+      font-weight: 600;
+    }
+
+    .auth-logo p {
+      color: #94A3B8;
+      font-size: 0.9rem;
+      margin-top: 0.25rem;
+    }
+
+    .auth-card {
+      background: rgba(15, 30, 52, 0.85);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-xl);
+      padding: 2rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .auth-tabs {
+      display: flex;
+      gap: 0.25rem;
+      padding: 0.3rem;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: var(--radius-lg);
+      margin-bottom: 1.75rem;
+    }
+
+    .auth-tab {
+      flex: 1;
+      padding: 0.7rem;
+      border: none;
+      border-radius: var(--radius-md);
+      background: none;
+      color: #94A3B8;
+      font-family: var(--font);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .auth-tab.active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      box-shadow: 0 2px 10px rgba(27, 95, 173, 0.4);
+    }
+
+    .auth-form {
+      display: none;
+    }
+
+    .auth-form.active {
+      display: block;
+      animation: slideUp 0.3s ease;
+    }
+
+    .role-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .role-option {
+      display: none;
+    }
+
+    .role-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 1rem;
+      border: 2px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: var(--transition);
+      text-align: center;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .role-label:hover {
+      border-color: var(--primary);
+      background: rgba(27, 95, 173, 0.1);
+    }
+
+    .role-option:checked+.role-label {
+      border-color: var(--primary);
+      background: rgba(27, 95, 173, 0.15);
+      box-shadow: 0 0 0 1px var(--primary);
+    }
+
+    .role-icon {
+      font-size: 2rem;
+    }
+
+    .role-name {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #F1F5F9;
+    }
+
+    .role-desc {
+      font-size: 0.7rem;
+      color: #64748B;
+    }
+
+    .features {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .feature {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.85rem;
+      color: #94A3B8;
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .feature-icon {
+      font-size: 1rem;
+      width: 28px;
+      text-align: center;
+    }
+
+    /* Dark context overrides for form inputs */
+    .auth-card .form-label {
+      color: #94A3B8;
+    }
+
+    .auth-card .form-input {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.08);
+      color: #F1F5F9;
+    }
+
+    .auth-card .form-input:focus {
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(27, 95, 173, 0.2);
+    }
+
+    .auth-card .form-input::placeholder {
+      color: #64748B;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="auth-container animate-fade-in">
+    <div class="auth-logo">
+      <img src="/logo.png" alt="SANAD - سند" />
+      <h1>SANAD - سند</h1>
+      <div class="brand-subtitle">نظام رعاية كبار السن</div>
+      <p>منصة ذكية بالذكاء الاصطناعي</p>
+    </div>
+
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchTab('login')">تسجيل الدخول</button>
+        <button class="auth-tab" onclick="switchTab('register')">إنشاء حساب</button>
+      </div>
+
+      <!-- Login Form -->
+      <form class="auth-form active" id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label class="form-label">الإيميل</label>
+          <input type="email" id="loginEmail" class="form-input" placeholder="example@mail.com" required
+            autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">كلمة السر</label>
+          <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required
+            autocomplete="current-password" />
+        </div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="loginBtn">
+          <span>دخول</span>
+        </button>
+        <div class="features">
+          <div class="feature"><span class="feature-icon">🏥</span><span>متابعة الصحة في الوقت الفعلي</span></div>
+          <div class="feature"><span class="feature-icon">🔔</span><span>تذكيرات الأدوية والمهام</span></div>
+          <div class="feature"><span class="feature-icon">🤖</span><span>مساعد SANAD - سند الذكي</span></div>
+        </div>
+      </form>
+
+      <!-- Register Form -->
+      <form class="auth-form" id="registerForm" onsubmit="handleRegister(event)">
+        <div class="form-group">
+          <label class="form-label">الاسم الكامل</label>
+          <input type="text" id="regName" class="form-input" placeholder="محمد أحمد" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">الإيميل</label>
+          <input type="email" id="regEmail" class="form-input" placeholder="example@mail.com" required
+            autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">رقم الموبايل (اختياري)</label>
+          <input type="tel" id="regPhone" class="form-input" placeholder="01XXXXXXXXX" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">كلمة السر</label>
+          <input type="password" id="regPassword" class="form-input" placeholder="6 حروف على الأقل" required
+            autocomplete="new-password" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">أنا...</label>
+          <div class="role-grid">
+            <div>
+              <input type="radio" name="role" value="MONITOR" id="roleMonitor" class="role-option" checked />
+              <label for="roleMonitor" class="role-label">
+                <span class="role-icon">👨‍💼</span>
+                <span class="role-name">المسؤول</span>
+                <span class="role-desc">ابن / قريب / مقدم رعاية</span>
+              </label>
+            </div>
+            <div>
+              <input type="radio" name="role" value="ELDER" id="roleElder" class="role-option" />
+              <label for="roleElder" class="role-label">
+                <span class="role-icon">👴</span>
+                <span class="role-name">كبير السن</span>
+                <span class="role-desc">المريض أو البالغ المعتني به</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="registerBtn">
+          <span>إنشاء الحساب</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="/js/api.js"></script>
+  <script>
+    // Redirect if already logged in
+    const existingUser = getUser();
+    if (existingUser && getToken()) {
+      window.location.href = existingUser.role === 'ELDER' ? '/dashboard-elder.html' : '/dashboard-monitor.html';
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.auth-tab').forEach((t, i) => t.classList.toggle('active', (i === 0) === (tab === 'login')));
+      document.getElementById('loginForm').classList.toggle('active', tab === 'login');
+      document.getElementById('registerForm').classList.toggle('active', tab === 'register');
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const btn = document.getElementById('loginBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner"></div>';
+
+      try {
+        const data = await api.auth.login({
+          email: document.getElementById('loginEmail').value,
+          password: document.getElementById('loginPassword').value
+        });
+        setAuth(data.token, data.user);
+        showToast(`أهلاً بيك يا ${data.user.name}! 👋`, 'success');
+        setTimeout(() => {
+          window.location.href = data.user.role === 'ELDER' ? '/dashboard-elder.html' : '/dashboard-monitor.html';
+        }, 800);
+      } catch (err) {
+        showToast(err.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<span>دخول</span>';
+      }
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      const btn = document.getElementById('registerBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner"></div>';
+
+      const role = document.querySelector('input[name="role"]:checked').value;
+      try {
+        const data = await api.auth.register({
+          name: document.getElementById('regName').value,
+          email: document.getElementById('regEmail').value,
+          password: document.getElementById('regPassword').value,
+          phone: document.getElementById('regPhone').value || undefined,
+          role
+        });
+        setAuth(data.token, data.user);
+        showToast('تم إنشاء الحساب بنجاح! 🎉', 'success');
+        setTimeout(() => {
+          window.location.href = data.user.role === 'ELDER' ? '/dashboard-elder.html' : '/dashboard-monitor.html';
+        }, 800);
+      } catch (err) {
+        showToast(err.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<span>إنشاء الحساب</span>';
+      }
+    }
+  </script>
+</body>
+
+</html>

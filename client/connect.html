@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ربط الحساب — SANAD - سند</title>
+    <meta name="description" content="ربط حساب كبير السن في نظام SANAD - سند" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="stylesheet" href="/css/global.css" />
+    <style>
+        body {
+            background: linear-gradient(160deg, #0B1929 0%, #0E2240 50%, #0B1929 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        /* Decorative orbs */
+        body::before {
+            content: '';
+            position: fixed;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(43, 191, 179, 0.08), transparent 70%);
+            top: -100px;
+            left: -100px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .connect-card {
+            width: 100%;
+            max-width: 430px;
+            background: rgba(15, 30, 52, 0.85);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius-xl);
+            padding: 2.5rem 2rem;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .connect-card .logo-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .connect-card .logo-badge img {
+            width: 36px;
+            height: 36px;
+            object-fit: contain;
+        }
+
+        .connect-card .logo-badge span {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--secondary-light);
+        }
+
+        .connect-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .monitor-info {
+            background: rgba(27, 95, 173, 0.1);
+            border: 1px solid rgba(27, 95, 173, 0.25);
+            border-radius: var(--radius-lg);
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .monitor-name {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-light);
+        }
+
+        .monitor-label {
+            font-size: 0.85rem;
+            color: #94A3B8;
+            margin-top: 0.25rem;
+        }
+
+        .connect-question {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #F1F5F9;
+        }
+
+        .connect-sub {
+            color: #94A3B8;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn-elder-lg {
+            padding: 1.1rem 2rem;
+            font-size: 1.15rem;
+            font-weight: 800;
+            border-radius: var(--radius-xl);
+            min-width: 140px;
+        }
+
+        .result-success {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+        }
+
+        .result-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+        }
+
+        .need-login {
+            background: rgba(245, 166, 35, 0.1);
+            border: 1px solid rgba(245, 166, 35, 0.25);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="connect-card animate-fade-in">
+        <div class="logo-badge">
+            <img src="/logo.png" alt="SANAD - سند" />
+            <span>SANAD - سند</span>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState">
+            <div class="spinner spinner-lg" style="margin: 2rem auto;"></div>
+            <p style="color: #94A3B8;">جاري تحميل معلومات الربط...</p>
+        </div>
+
+        <!-- Connection Info State -->
+        <div id="connectState" class="hidden">
+            <span class="connect-icon">🔗</span>
+            <div class="connect-question">هل تريد ربط حسابك مع المسؤول؟</div>
+            <div class="monitor-info">
+                <div class="monitor-name" id="monitorName">...</div>
+                <div class="monitor-label">يطلب الربط مع حسابك</div>
+            </div>
+            <div class="connect-sub">لو وافقت، المسؤول هيقدر يتابع صحتك ويبعتلك تذكيرات</div>
+
+            <!-- User is not logged in as elder -->
+            <div id="loginPrompt" class="need-login hidden">
+                <div style="font-size:1.1rem; font-weight:700; margin-bottom:0.75rem; color: #F1F5F9;">⚠️ محتاج تسجل
+                    دخول أو تعمل حساب
+                    كبير سن أولاً</div>
+                <div class="flex gap-2 justify-center" style="flex-wrap:wrap;">
+                    <a href="/index.html" class="btn btn-primary btn-elder-lg">تسجيل الدخول</a>
+                </div>
+            </div>
+
+            <!-- Elder logged in, can accept/reject -->
+            <div id="actionButtons" class="hidden">
+                <div class="flex gap-3 justify-center" style="flex-wrap:wrap; margin-top:1.5rem;">
+                    <button class="btn btn-success btn-elder-lg" onclick="acceptConnection()" id="acceptBtn">✅
+                        موافق</button>
+                    <button class="btn btn-danger btn-elder-lg" onclick="rejectConnection()" id="rejectBtn">❌
+                        إلغاء</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success State -->
+        <div id="successState" class="hidden">
+            <span class="connect-icon">🎉</span>
+            <div class="result-success">
+                <div style="font-size:1.2rem; font-weight:800; color: var(--success); margin-bottom:0.5rem;">تم الربط
+                    بنجاح!</div>
+                <div id="successMessage" style="color: #94A3B8;"></div>
+            </div>
+            <a href="/dashboard-elder.html" class="btn btn-primary btn-block btn-lg" style="margin-top:1.5rem;">الذهاب
+                للوحة التحكم</a>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="hidden">
+            <span class="connect-icon">⚠️</span>
+            <div class="result-error">
+                <div style="font-size:1.1rem; font-weight:700; color: var(--danger); margin-bottom:0.5rem;"
+                    id="errorMessage">خطأ</div>
+            </div>
+            <a href="/dashboard-elder.html" class="btn btn-secondary btn-block" style="margin-top:1.5rem;">الرجوع
+                للرئيسية</a>
+        </div>
+
+        <!-- Rejected State -->
+        <div id="rejectedState" class="hidden">
+            <span class="connect-icon">✋</span>
+            <div style="font-size:1.2rem; font-weight:700; color: #F1F5F9;">تم رفض طلب الربط</div>
+            <p style="margin-top:0.5rem; color: #94A3B8;">لو غيّرت رأيك، اطلب من المسؤول كود جديد</p>
+            <a href="/dashboard-elder.html" class="btn btn-secondary btn-block" style="margin-top:1.5rem;">رجوع</a>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+    <script src="/js/api.js"></script>
+    <script>
+        // Extract code from URL path: /connect/CODE
+        const pathParts = window.location.pathname.split('/');
+        const code = pathParts[pathParts.length - 1];
+
+        const user = getUser();
+        const token = getToken();
+
+        function showState(id) {
+            ['loadingState', 'connectState', 'successState', 'errorState', 'rejectedState'].forEach(s => {
+                document.getElementById(s).classList.toggle('hidden', s !== id);
+            });
+        }
+
+        async function loadConnectionInfo() {
+            if (!code) {
+                showState('errorState');
+                document.getElementById('errorMessage').textContent = 'الكود غير موجود في الرابط';
+                return;
+            }
+
+            try {
+                const data = await api.connections.info(code);
+                document.getElementById('monitorName').textContent = data.monitor.name;
+
+                if (!user || !token) {
+                    // Not logged in
+                    document.getElementById('loginPrompt').classList.remove('hidden');
+                    // Store code in session for after login (redirect back)
+                    sessionStorage.setItem('pendingConnectCode', code);
+                } else if (user.role !== 'ELDER') {
+                    showState('errorState');
+                    document.getElementById('errorMessage').textContent = 'الرابط ده للمستخدمين كبار السن فقط — انت مسجل كمسؤول';
+                    return;
+                } else {
+                    document.getElementById('actionButtons').classList.remove('hidden');
+                }
+
+                showState('connectState');
+            } catch (err) {
+                showState('errorState');
+                document.getElementById('errorMessage').textContent = err.message;
+            }
+        }
+
+        async function acceptConnection() {
+            const btn = document.getElementById('acceptBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner"></div>';
+            try {
+                const data = await api.connections.accept(code);
+                document.getElementById('successMessage').textContent = data.message;
+                showState('successState');
+            } catch (err) {
+                showToast(err.message, 'error');
+                btn.disabled = false;
+                btn.innerHTML = '✅ موافق';
+            }
+        }
+
+        async function rejectConnection() {
+            const btn = document.getElementById('rejectBtn');
+            btn.disabled = true;
+            try {
+                await api.connections.reject(code);
+                showState('rejectedState');
+            } catch (err) {
+                showToast(err.message, 'error');
+                btn.disabled = false;
+            }
+        }
+
+        loadConnectionInfo();
+    </script>
+</body>
+
+</html>
