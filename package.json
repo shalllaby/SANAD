@@ -1,0 +1,13 @@
+{
+    "name": "sanad-app-root",
+    "version": "1.0.0",
+    "description": "Root package.json for deployment (Railway, Render, Koyeb)",
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "scripts": {
+        "install": "cd server && npm install",
+        "build": "cd server && npx prisma generate",
+        "start": "cd server && npm start"
+    }
+}
