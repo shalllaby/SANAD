@@ -21,7 +21,8 @@ router.post('/', verifyApiKey, async (req, res) => {
         });
 
         if (!elder) {
-            return res.status(404).json({ error: 'كبير السن ده مش موجود في النظام' });
+            console.warn(`⚠️  Alert ignored: Elder with ID [${elderId}] not found in database.`);
+            return res.status(404).json({ error: 'كبير السن ده مش موجود في النظام — تأكد من صحة الـ ID' });
         }
 
         const alert = await prisma.alert.create({

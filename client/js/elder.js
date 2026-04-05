@@ -526,59 +526,65 @@ function closeHealthModal() {
 }
 
 async function handleHealthSubmit(e) {
-    e.preventDefault();
+    if (e) e.preventDefault();
+
     const btn = document.getElementById('healthSubmitBtn');
     const resultArea = document.getElementById('healthResultArea');
+    const user = getUser();
 
+    // 1. تجميع البيانات الحقيقية من الحقول بدقة وحفظها في كائن
     const data = {
-        age: Number(document.getElementById('healthAge').value),
-        weight: Number(document.getElementById('healthWeight').value),
-        height: Number(document.getElementById('healthHeight').value),
-        sleep: Number(document.getElementById('healthSleep').value),
-        exercise: document.getElementById('healthExercise').value,
-        sugar_intake: document.getElementById('healthSugar').value,
-        smoking: document.getElementById('healthSmoking').value,
-        alcohol: 'no', // Default 
-        married: document.getElementById('healthMarried').value
+        age: parseInt(document.getElementById('healthAge').value) || 60,
+        gender: document.getElementById('healthGender').value || 'male',
+        weight: parseFloat(document.getElementById('healthWeight').value) || 70,
+        height: parseFloat(document.getElementById('healthHeight').value) || 170,
+        sleep: parseFloat(document.getElementById('healthSleep').value) || 8,
+        exercise: document.getElementById('healthExercise').value.trim(),
+        sugar_intake: document.getElementById('healthSugar').value.trim(),
+        smoking: document.getElementById('healthSmoking').value.trim(),
+        alcohol: document.getElementById('healthAlcohol').value.trim(),
+        married: document.getElementById('healthMarried').value.trim(),
+        elder_id: user ? user.id : null
     };
+
+    console.log('🔄 [SYSTEM] Starting Health Assessment for:', data.elder_id);
 
     btn.disabled = true;
     const oldText = btn.innerHTML;
-    btn.innerHTML = '<div class="spinner"></div> جاري التحليل...';
+    btn.innerHTML = '<span class="spinner-small"></span> جاري التحليل...';
     resultArea.style.display = 'none';
 
-    const user = getUser();
-    if (user && user.id) data.elder_id = user.id;
-
     try {
-        // 1. Call AI Microservice (Now it sends the alert to SANAD itself since we added elder_id)
-        let res;
-        try {
-            res = await api.ai.predictHealth(data);
-        } catch (aiErr) {
-            console.error('AI Predict Failure:', aiErr);
-            throw new Error('AI_MODEL_FAILURE');
+        // 2. إرسال البيانات للموديل (سيقوم الموديل بإرسال الـ Alert للسيرفر داخلياً)
+        const res = await api.ai.predictHealth(data);
+        
+        const isHigh = res.prediction === 'high';
+        
+        // 3. عرض النتيجة فوراً للمستخدم بتنسيق أجمل
+        resultArea.style.display = 'block';
+        resultArea.style.padding = '1.25rem';
+        resultArea.style.borderRadius = '12px';
+        resultArea.style.marginTop = '1rem';
+        resultArea.style.textAlign = 'center';
+        resultArea.style.fontWeight = 'bold';
+        
+        if (isHigh) {
+            resultArea.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
+            resultArea.style.color = '#EF4444';
+            resultArea.style.border = '1px solid #EF4444';
+            resultArea.innerHTML = `⚠️ تحذير: صحتك في خطر!<br><small style="font-weight:normal">تم إرسال إشعار فوري لمسؤول الرعاية لمتابعة حالتك.</small>`;
+        } else {
+            resultArea.style.backgroundColor = 'rgba(34, 197, 94, 0.15)';
+            resultArea.style.color = '#22C55E';
+            resultArea.style.border = '1px solid #22C55E';
+            resultArea.innerHTML = `✅ حالتك مستقرة والحمد لله.<br><small style="font-weight:normal">استمر في الحفاظ على نمط حياتك الصحي.</small>`;
         }
 
-        // 2. Map Prediction to UI
-        const isHigh = res.prediction === 'high';
-        resultArea.style.background = isHigh ? 'rgba(239, 68, 68, 0.2)' : 'rgba(34, 197, 94, 0.2)';
-        resultArea.style.color = isHigh ? '#FCA5A5' : '#86EFAC';
-        resultArea.style.border = `1px solid ${isHigh ? '#EF4444' : '#22C55E'}`;
-        resultArea.innerHTML = isHigh
-            ? "⚠️ لازم تزور الطبيب في اقرب وقت!<br><small style='font-size:0.8rem; font-weight: normal;'>المسؤول هيتبلغ ويتابع التقرير فوراً</small>"
-            : "✅ ما شاء الله! انت زي الفل مش محتاج تكشف ولا حاجة!<br><small style='font-size:0.8rem; font-weight: normal;'>الحمد لله حالتك مستقرة</small>";
-        resultArea.style.display = 'block';
-
-        showToast('تم تحليل حالتك بنجاح ووصل التقرير للمسؤول', 'success');
+        showToast('تم إجراء التحليل بنجاح ووصل التقرير للمسؤول', 'success');
 
     } catch (err) {
-        if (err.message === 'AI_MODEL_FAILURE') {
-            showToast('تعذر الاتصال بموديل الذكاء الاصطناعي — تأكد إنه شغال على منفذ 8013', 'error');
-        } else {
-            showToast('حدث خطأ غير متوقع أثناء العملية', 'error');
-            console.error(err);
-        }
+        console.error('❌ [ERROR] Health Process Failed:', err);
+        showToast('فشل الاتصال بموديل الصحة — تأكد من تشغيل الموديل على 8015', 'error');
     } finally {
         btn.disabled = false;
         btn.innerHTML = oldText;

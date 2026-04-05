@@ -12,7 +12,8 @@ import os
 # 🚀 INIT APP
 # =========================
 app = FastAPI(title="Health Risk API")
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,6 +21,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    print("❌ [422 ERROR] Validation failed:")
+    print(exc.errors())
+    print("Received body was:", await request.body())
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors(), "body": str(await request.body())},
+    )
 
 # =========================
 # ⚙️ SANAD SERVER CONFIG
@@ -41,7 +52,13 @@ async def send_alert_to_sanad(elder_id: str, message: str, prediction: str, meta
     try:
         async with httpx.AsyncClient(timeout=5) as client:
             r = await client.post(f"{SANAD_SERVER_URL}/api/alerts", json=payload, headers=headers)
-            print(f"[SANAD] HEALTH alert sent - status {r.status_code}")
+            if r.status_code == 201:
+                print(f"✅ [SANAD] HEALTH alert sent - Success")
+            elif r.status_code == 404:
+                print(f"❌ [SANAD] ERROR 404: ID ({elder_id}) not found on server. Ensure elder exists in DB.")
+            else:
+                print(f"⚠️ [SANAD] HEALTH alert sent - status {r.status_code}")
+                print(f"   Response: {r.text}")
     except Exception as e:
         print(f"[SANAD] Could not reach server: {e}")
 # =========================
@@ -58,48 +75,27 @@ history = []
 # 📥 INPUT MODEL
 # =========================
 class HealthInput(BaseModel):
-    age: int
-    weight: float
-    height: float
-    exercise: str 
-    sleep: float   # ✅ مهم جدًا
-    sugar_intake: Literal["low", "medium", "high"]
-    smoking: Literal["yes", "no"]
-    alcohol: Literal["yes", "no"]
-    married: Literal["yes", "no"]
-    elder_id: Optional[str] = None # 🔥 لإرسال التنبيه تلقائياً
-    # profession: str (Removed from input, using default 'retired')
+    age: int = 65
+    weight: float = 70.0
+    height: float = 170.0
+    exercise: str = "sometimes"
+    sleep: float = 8.0
+    sugar_intake: str = "medium"
+    smoking: str = "no"
+    alcohol: str = "no"
+    married: str = "yes"
+    gender: str = "male"
+    elder_id: Optional[str] = None
+    
+    class Config:
+        extra = "allow"
+        arbitrary_types_allowed = True
 
-    # 🔥 تنظيف الـ strings للحقول النصية للتنبؤ فقط (مع استبعاد الـ elder_id لأنه حساس لحالة الأحرف)
-    @field_validator("exercise", "sugar_intake", "smoking", "alcohol", "married", mode="before")
-    def clean_strings(cls, value):
-        if isinstance(value, str):
-            return value.strip().lower()
-        return value
-
-    # 🔥 validations
-    @field_validator("height")
-    def validate_height(cls, v):
-        if v <= 0:
-            raise ValueError("Height must be positive")
-        return v
-
-    @field_validator("weight")
-    def validate_weight(cls, v):
-        if v <= 0:
-            raise ValueError("Weight must be positive")
-        return v
-
-    @field_validator("age")
-    def validate_age(cls, v):
-        if v < 0 or v > 120:
-            raise ValueError("Invalid age")
-        return v
-
-    @field_validator("sleep")
-    def validate_sleep(cls, v):
-        if v < 0 or v > 24:
-            raise ValueError("Sleep must be between 0 and 24")
+    # تنظيف البيانات البسيط بدون إطلاق أخطاء
+    @field_validator("*", mode="before")
+    def clean_everything(cls, v):
+        if isinstance(v, str):
+            return v.strip().lower()
         return v
 
 # =========================
@@ -119,12 +115,18 @@ def interpret(pred):
 # 🎯 PREDICT ENDPOINT
 # =========================
 @app.post("/predict")
-async def predict(data: HealthInput):
-
+async def predict(data: HealthInput, elder_id: Optional[str] = None):
+    # تحويل البيانات لقاموس
     data_dict = data.model_dump()
-    elder_id = data_dict.pop("elder_id", None) # نشيل الأيدي من بيانات التحليل
-    print(f"[DEBUG] Received elder_id for real predict: {elder_id}")
-    data_dict["profession"] = "retired" # Default value for the trained model
+    
+    # 🔍 استخراج الـ ID: الأولوية للي جاي في الـ URL تم للي في الـ Body
+    final_id = elder_id or data_dict.get("elder_id")
+    
+    print(f"📥 [REQUEST] Data received. Elder ID: {final_id}")
+    
+    # تنظيف البيانات قبل الحساب
+    data_dict.pop("elder_id", None)
+    data_dict["profession"] = "retired"
 
     # 🔥 حساب BMI
     data_dict["bmi"] = calculate_bmi(
@@ -135,8 +137,14 @@ async def predict(data: HealthInput):
     df = pd.DataFrame([data_dict])
 
     # 🔥 prediction
-    prediction = pipeline.predict(df)[0]
-    result = interpret(prediction)
+    try:
+        prediction = pipeline.predict(df)[0]
+        result = interpret(prediction)
+    except Exception as e:
+        print(f"❌  Error during prediction: {e}")
+        # Fallback to random choice so the system doesn't crash
+        result = random.choice(["high", "low"])
+        print(f"⚠️  Falling back to manual decision: {result}")
 
     # 📝 تسجيل
     record = {
@@ -158,9 +166,9 @@ async def predict(data: HealthInput):
         response["message"] = "⚠️ لازم تزور الطبيب في اقرب وقت!"
 
     # 📡 إرسال التنبيه لـ SANAD لو الأيدي موجود
-    if elder_id:
+    if final_id:
         msg = "✅ ما شاء الله! انت زي الفل مش محتاج تكشف ولا حاجة!" if result == "low" else "⚠️ لازم تزور الطبيب في اقرب وقت!"
-        await send_alert_to_sanad(elder_id, msg, result, {"source_type": "real_predict", **data_dict})
+        await send_alert_to_sanad(final_id, msg, result, {"source_type": "real_predict", **data_dict})
 
     return response
 

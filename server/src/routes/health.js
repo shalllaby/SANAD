@@ -46,7 +46,7 @@ router.get('/elder/:elderId', authenticate, requireRole('MONITOR'), async (req, 
             totalSteps: vals.steps.length ? vals.steps.reduce((a, b) => a + b) : null
         })).sort((a, b) => a.date.localeCompare(b.date));
 
-        res.json({ latest, dailyAverages, records: records.slice(0, 50) });
+        res.json({ latest, dailyAverages, records: records.slice(0, 200) });
     } catch (err) {
         res.status(500).json({ error: 'حصل خطأ في السيرفر' });
     }

@@ -261,6 +261,14 @@ async function loadAlerts() {
         // Audio on new alerts
         if (prevAlertCount >= 0 && unread > prevAlertCount) {
             if (typeof playAlertSound === 'function') playAlertSound();
+            
+            // 🔥 REAL-TIME SYNC: If new alert is MOOD, reload reports/management
+            const latestAlert = alerts[0];
+            if (latestAlert && latestAlert.type === 'MOOD' && latestAlert.elderId === selectedElderId) {
+                console.log('🔄 [SYNC] New Mood detected! Refreshing reports...');
+                if (currentTab === 'reports') loadReports(selectedElderId);
+                if (currentTab === 'management') loadManagementTab(selectedElderId);
+            }
         }
         prevAlertCount = unread;
 
@@ -858,12 +866,12 @@ async function loadReports(elderId) {
 
         records.forEach(r => {
             if (r.moodLabel) {
-                const label = r.moodLabel.toLowerCase();
-                // Standardize labels (handle aliases like Neutral/Surprised/Disgusted)
+                const label = r.moodLabel.toLowerCase().trim();
+                // Standardize labels (handle aliases and the 'natural' vs 'neutral' conflict)
                 let mapped = label;
-                if (label === 'neutral') mapped = 'natural';
-                if (label === 'surprised') mapped = 'surprise';
-                if (label === 'disgusted') mapped = 'disgust';
+                if (label === 'neutral' || label === 'natural') mapped = 'natural';
+                if (label === 'surprised' || label === 'surprise') mapped = 'surprise';
+                if (label === 'disgusted' || label === 'disgust') mapped = 'disgust';
 
                 // Count for charts
                 if (mapped === 'happy') happyCount++;
@@ -901,14 +909,14 @@ async function loadReports(elderId) {
             naturalCount = 100;
         }
 
-        // Get latest mood specifically
+        // Get latest mood specifically from either records or latest alerts
         const latestMoodRecord = records.find(r => r.moodLabel);
         if (latestMoodRecord) {
-            const label = latestMoodRecord.moodLabel.toLowerCase();
+            const label = latestMoodRecord.moodLabel.toLowerCase().trim();
             let mapped = label;
-            if (label === 'neutral') mapped = 'natural';
-            if (label === 'surprised') mapped = 'surprise';
-            if (label === 'disgusted') mapped = 'disgust';
+            if (label === 'neutral' || label === 'natural') mapped = 'natural';
+            if (label === 'surprised' || label === 'surprise') mapped = 'surprise';
+            if (label === 'disgusted' || label === 'disgust') mapped = 'disgust';
 
             const emojis = { happy: 'سعيد 😊', sad: 'حزين 😔', angry: 'غاضب 😠', surprise: 'متفاجئ 😲', natural: 'طبيعي 😐', disgust: 'مشمئز 🤢' };
             latestMood = emojis[mapped] || latestMoodRecord.moodLabel;

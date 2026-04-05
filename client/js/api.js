@@ -141,10 +141,26 @@ const api = {
 
     // AI Services (Direct microservice calls)
     ai: {
-        predictHealth: (data) => fetch('http://localhost:8013/predict', {
+        // Health Risk AI (Port 8015)
+        predictHealth: (data) => fetch('http://localhost:8015/predict', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
+        }).then(res => res.json()),
+
+        // Mood/Emotion AI (Port 8014)
+        testMood: (emotion, elderId) => fetch(`http://localhost:8014/test/${emotion}?elder_id=${elderId}`, {
+            method: 'POST'
+        }).then(res => res.json()),
+
+        detectEmotionImage: (formData, elderId) => fetch(`http://localhost:8014/detect/emotion/image?elder_id=${elderId}`, {
+            method: 'POST',
+            body: formData
+        }).then(res => res.json()),
+
+        detectEmotionVideo: (formData, elderId) => fetch(`http://localhost:8014/detect/emotion/video?elder_id=${elderId}`, {
+            method: 'POST',
+            body: formData
         }).then(res => res.json())
     }
 };

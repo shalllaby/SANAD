@@ -32,41 +32,45 @@ async def push_mood_to_sanad(elder_id: str, emotion: str, confidence: float, sta
     """Save mood reading to HealthData and push alert only when status is 'risk'."""
     headers = {"X-API-Key": SANAD_API_KEY, "Content-Type": "application/json"}
 
-    # 1️⃣  Save to HealthData
-    health_payload = {
+    # 1️⃣  Save to Health Records (For the Charts/Reports)
+    # This is what populates the "Psychological Status Details"
+    hp = {
         "elderId":    elder_id,
-        "moodScore":  EMOTION_SCORE.get(emotion, 0.5),
-        "moodLabel":  emotion,
+        "moodScore":  float(EMOTION_SCORE.get(emotion, 0.5)),
+        "moodLabel":  emotion.lower().strip(),
         "source":     "MOOD_DETECTION"
     }
+    
+    print(f"📡 [SYNC] Sending to SANAD Reports: {emotion} for {elder_id}")
+    
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            h_res = await client.post(f"{SANAD_SERVER_URL}/api/health/mood", json=hp, headers=headers)
+            if h_res.status_code == 201:
+                print(f"✅ [SUCCESS] Health report applied")
+            else:
+                print(f"❌ [FAIL] Health report error: {h_res.status_code}")
+    except Exception as e:
+        print(f"🚨 [ERROR] Connection failure: {e}")
+
+    # 2️⃣  Alert SANAD (For the Live Notifications)
+    severity_map = {"risk": "MEDIUM", "warning": "LOW", "healthy": "INFO", "unknown": "INFO"}
+    
+    ap = {
+        "elderId":  elder_id,
+        "type":     "MOOD",
+        "message":  f"🎭 رصد حالة نفسية: {emotion}",
+        "severity": severity_map.get(status, "INFO"),
+        "source":   "MOOD_DETECTION",
+        "metadata": {"emotion": emotion, "confidence": confidence, "status": status}
+    }
+    
     try:
         async with httpx.AsyncClient(timeout=5) as client:
-            await client.post(f"{SANAD_SERVER_URL}/api/health/mood", json=health_payload, headers=headers)
+            await client.post(f"{SANAD_SERVER_URL}/api/alerts", json=ap, headers=headers)
+            print(f"🔔 [SYNC] Alert pushed")
     except Exception as e:
-        print(f"⚠️  Could not update HealthData: {e}")
-
-    # 2️⃣  Alert only when risky mood detected
-    if status == "risk":
-        alert_payload = {
-            "elderId":  elder_id,
-            "type":     "MOOD",
-            "message":  f"💔 تم اكتشاف حالة نفسية سلبية ({emotion}) بنسبة تأكد {confidence*100:.0f}%",
-            "severity": "MEDIUM",
-            "source":   "MOOD_DETECTION",
-            "metadata": {
-                "emotion": emotion, 
-                "moodScore": EMOTION_SCORE.get(emotion, 0.5),
-                "video_url": video_url,
-                "best_emotion": emotion,
-                "status": status
-            }
-        }
-        try:
-            async with httpx.AsyncClient(timeout=5) as client:
-                r = await client.post(f"{SANAD_SERVER_URL}/api/alerts", json=alert_payload, headers=headers)
-                print(f"🚨 SANAD MOOD alert sent — status {r.status_code}")
-        except Exception as e:
-            print(f"⚠️  Could not send MOOD alert: {e}")
+        print(f"⚠️ [WARN] Alert push failed: {e}")
 
 # =============================
 # CONFIG

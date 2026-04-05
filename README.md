@@ -99,8 +99,7 @@
 
 ### 1- تشغيل الخادم (Backend):
 ```bash
-cd server
-npm install
+cd servenpm install
 npx prisma db push  # لتهيئة قاعدة البيانات
 npm run dev
 ```

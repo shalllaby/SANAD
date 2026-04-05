@@ -916,6 +916,13 @@
                         <label class="form-label" style="font-size: 0.85rem;">السن</label>
                         <input type="number" id="healthAge" class="form-input" placeholder="65" required>
                     </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 0.85rem;">النوع</label>
+                        <select id="healthGender" class="form-input" required>
+                            <option value="male">ذكر</option>
+                            <option value="female">أنثى</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
@@ -967,6 +974,14 @@
                             <option value="no">لا</option>
                         </select>
                     </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label class="form-label">بتشرب كحول؟ 🍷</label>
+                    <select id="healthAlcohol" class="form-input" required>
+                        <option value="no">لا خالص</option>
+                        <option value="yes">أحياناً</option>
+                    </select>
                 </div>
 
                 <div id="healthResultArea" style="display: none; margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md); text-align: center; font-size: 1.1rem; font-weight: 700; line-height: 1.6;"></div>

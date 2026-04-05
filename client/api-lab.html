@@ -61,6 +61,7 @@
             margin: 0;
             background: linear-gradient(to bottom right, #FFFFFF, #94A3B8);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
@@ -402,6 +403,7 @@
             <button class="tab-btn active" onclick="switchLab('fall')">🧍 Fall Detection</button>
             <button class="tab-btn" onclick="switchLab('fire')">🔥 Fire & Smoke</button>
             <button class="tab-btn" onclick="switchLab('mood')">😊 Mood Analysis</button>
+            <button class="tab-btn" onclick="switchLab('health')">💓 Health Risk</button>
         </div>
 
         <!-- Service Panels -->
@@ -485,6 +487,31 @@
             </div>
         </div>
 
+        <!-- HEALTH -->
+        <div id="panel-health" class="action-panel">
+            <div class="panel-header">
+                <div class="panel-title"><span>💓</span> Health Risk Assessment Service</div>
+                <div class="endpoint-badge" style="font-size: 0.7rem; color: var(--accent);">PORT: 8015</div>
+            </div>
+
+            <div class="upload-zone" id="upload-health" onclick="triggerFile('health')">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">📋</div>
+                <div style="font-weight: 600;">Manual Prediction Trigger</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">هذا الموديل لا يحتاج رفع صور — فقط اضغط على الاختبارات في الأسفل</div>
+            </div>
+
+            <div class="btn-grid">
+                <button class="api-btn danger" onclick="simulate('health', '/test/high', 'Critically High Risk')">
+                    <span>⚡ High Risk Sim</span>
+                    <span style="font-size: 0.7rem;">محاكاة خطر صحي مرتفع</span>
+                </button>
+                <button class="api-btn" onclick="simulate('health', '/test/low', 'Low Risk')">
+                    <span>✅ Low Risk Sim</span>
+                    <span style="font-size: 0.7rem;">محاكاة حالة صحية مستقرة</span>
+                </button>
+            </div>
+        </div>
+
         <!-- Console & Global Result -->
         <div class="card"
             style="background: var(--card-bg); border-radius: 20px; padding: 2rem; border: 1px solid rgba(255,255,255,0.05);">
@@ -523,7 +550,7 @@
 
     <script src="/js/api.js"></script>
     <script>
-        const AI_PORTS = { fall: 8012, fire: 8013, mood: 8014 };
+        const AI_PORTS = { fall: 8012, fire: 8013, mood: 8014, health: 8015 };
         let currentLab = 'fall';
 
         function switchLab(type) {
