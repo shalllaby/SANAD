@@ -1,0 +1,12 @@
+{
+    "age": 65,
+    "weight": 70.0,
+    "height": 170.0,
+    "exercise": "none",
+    "sleep": 8.0,
+    "sugar_intake": "low",
+    "smoking": "no",
+    "alcohol": "no",
+    "married": "yes",
+    "elder_id": "test-id"
+}

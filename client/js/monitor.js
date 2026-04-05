@@ -64,6 +64,7 @@ function switchTab(tab) {
         if (tab === 'management') loadManagementTab(selectedElderId);
         if (tab === 'reports') loadReports(selectedElderId);
     }
+    if (tab === 'settings') loadSettingsTab();
 
     // Close mobile sidebar
     document.getElementById('sidebar').classList.remove('open');
@@ -264,7 +265,7 @@ async function loadAlerts() {
         prevAlertCount = unread;
 
         // Emergency banners and Danger Mode
-        const emergencies = alerts.filter(a => a.type === 'EMERGENCY' && !a.isRead);
+        const emergencies = alerts.filter(a => (a.type === 'EMERGENCY' || a.severity === 'CRITICAL') && !a.isRead);
 
         const siren = document.getElementById('sirenSound');
         const popupText = document.getElementById('dangerPopupText');
@@ -304,14 +305,31 @@ async function loadAlerts() {
                         }
                     } catch (e) { }
                 }
+                let videoBtnBanner = '';
+                if (a.metadata) {
+                    try {
+                        const m = JSON.parse(a.metadata);
+                        if (m.video_url) {
+                            let port = a.type === 'FALL' ? '8012' : (a.type === 'MOOD' ? '8014' : '8013');
+                            const fullUrl = `http://localhost:${port}${m.video_url}`;
+                            videoBtnBanner = `<button class="btn btn-sm" style="background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.4); color:white; font-family:var(--font); cursor:pointer; padding:0.4rem 0.8rem; border-radius:var(--radius-md); font-size:0.8rem; display:flex; align-items:center; gap:5px;" onclick="viewVideoEvidence('${fullUrl}', ${JSON.stringify(m).replace(/"/g, '&quot;')})">🎥 مشاهدة الفيديو</button>`;
+                        }
+                    } catch (e) { }
+                }
+
                 return `
-                <div class="emergency-banner">
-                    <div class="icon">🚨</div>
-                    <div class="info">
-                        <h4>${a.message}</h4>
-                        <p>${a.elder?.name || 'كبير السن'} • ${timeAgo(a.createdAt)} ${locationLink}</p>
+                <div class="emergency-banner" style="display:flex; justify-content:space-between; align-items:center; gap:1.5rem;">
+                    <div style="display:flex; align-items:center; gap:1rem;">
+                        <div class="icon" style="font-size:1.8rem; animation: pulse 1s infinite;">🚨</div>
+                        <div class="info">
+                            <h4 style="margin:0; font-size:1rem; font-weight:800;">${a.message}</h4>
+                            <p style="margin:2px 0 0; font-size:0.85rem; opacity:0.9;">${a.elder?.name || 'كبير السن'} • ${timeAgo(a.createdAt)} ${locationLink}</p>
+                        </div>
                     </div>
-                    <button class="btn btn-sm" style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#EF4444; font-family:var(--font); cursor:pointer; padding:0.4rem 0.8rem; border-radius:var(--radius-md); font-size:0.8rem; white-space:nowrap;" onclick="markAlertRead('${a.id}')">✓ قرأت</button>
+                    <div style="display:flex; gap:0.5rem;">
+                        ${videoBtnBanner}
+                        <button class="btn btn-sm" style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#EF4444; font-family:var(--font); cursor:pointer; padding:0.4rem 0.8rem; border-radius:var(--radius-md); font-size:0.8rem; white-space:nowrap;" onclick="markAlertRead('${a.id}')">✓ قرأت</button>
+                    </div>
                 </div>
             `;
             }).join('');
@@ -326,12 +344,34 @@ async function loadAlerts() {
             recentContainer.innerHTML = recent.map(a => {
                 const severityClass = a.severity === 'CRITICAL' ? 'critical' : a.severity === 'HIGH' ? 'high' : a.severity === 'MEDIUM' ? 'medium' : 'low';
                 const icons = { FALL: '🚨', FIRE: '🔥', MOOD: '😔', HEALTH: '💓', EMERGENCY: '🚨', MANUAL: '📌', default: '⚠️' };
+                let videoBtn = '';
+                let healthInfo = '';
+                if (a.metadata) {
+                    try {
+                        const m = JSON.parse(a.metadata);
+                        if (m.video_url) {
+                            // Unified Ports based on new microservices architecture
+                            let port = '8013'; // Default Fire/Smoke
+                            if (a.type === 'FALL') port = '8012';
+                            if (a.type === 'MOOD') port = '8014';
+
+                            const fullUrl = `http://localhost:${port}${m.video_url}`;
+                            videoBtn = `<button onclick="viewVideoEvidence('${fullUrl}', ${JSON.stringify(m).replace(/"/g, '&quot;')})" style="background:rgba(239, 68, 68, 0.1); color:#EF4444; border:1px solid rgba(239, 68, 68, 0.2); border-radius:6px; padding:0.25rem 0.5rem; font-size:0.75rem; cursor:pointer; margin-top:8px; font-weight:bold; display:flex; align-items:center; gap:5px;">🎥 مشاهدة دليل الفيديو (AI)</button>`;
+                        }
+                        if (a.type === 'HEALTH' && m.prediction) {
+                            healthInfo = `<div style="font-size:0.75rem; color:var(--primary); margin-top:2px; font-weight:500;">📊 ${m.prediction === 'high' ? 'خطورة مرتفعة ⚠️' : 'خطورة منخفضة ✅'}</div>`;
+                        }
+
+                    } catch (e) { }
+                }
                 return `
                 <div class="alert-item ${severityClass}">
                     <span style="font-size:1.4rem;">${icons[a.type] || icons.default}</span>
                     <div style="flex:1;">
                         <div style="font-weight:600; font-size:0.9rem; color:#1E293B;">${a.message}</div>
                         <div style="font-size:0.8rem; color:#64748B; margin-top:2px;">${a.elder?.name || ''} • ${timeAgo(a.createdAt)} • ${a.severity}</div>
+                        ${healthInfo}
+                        ${videoBtn}
                     </div>
                     ${!a.isRead ? '<span style="width:8px;height:8px;border-radius:50%;background:var(--danger);flex-shrink:0;"></span>' : ''}
                 </div>
@@ -356,12 +396,33 @@ async function loadAlerts() {
                         }
                     } catch (e) { }
                 }
+                let videoBtn = '';
+                let healthInfo = '';
+                if (a.metadata) {
+                    try {
+                        const m = JSON.parse(a.metadata);
+                        if (m.video_url) {
+                            let port = '8013'; // Default Fire
+                            if (a.type === 'FALL') port = '8012';
+                            if (a.type === 'MOOD') port = '8014';
+
+                            const fullUrl = `http://localhost:${port}${m.video_url}`;
+                            videoBtn = `<button onclick="viewVideoEvidence('${fullUrl}', ${JSON.stringify(m).replace(/"/g, '&quot;')})" style="background:rgba(239, 68, 68, 0.1); color:#EF4444; border:1px solid rgba(239, 68, 68, 0.2); border-radius:6px; padding:0.3rem 0.7rem; font-size:0.75rem; cursor:pointer; margin-top:8px; font-weight:bold;">🎥 مشاهدة دليل الفيديو (AI Evidence)</button>`;
+                        }
+                        if (a.type === 'HEALTH' && m.prediction) {
+                            healthInfo = `<div style="font-size:0.75rem; color:var(--primary); margin-top:2px; font-weight:500;">📊 ${m.prediction === 'high' ? 'خطورة مرتفعة ⚠️' : 'خطورة منخفضة ✅'}</div>`;
+                        }
+                    } catch (e) { }
+                }
+
                 return `
                 <div class="alert-item ${severityClass}">
                     <span style="font-size:1.4rem;">${icons[a.type] || icons.default}</span>
                     <div style="flex:1;">
                         <div style="font-weight:600; font-size:0.9rem; color:#1E293B;">${a.message}</div>
                         <div style="font-size:0.8rem; color:#64748B; margin-top:2px;">${a.elder?.name || ''} • ${timeAgo(a.createdAt)} • ${a.severity}${locationLink}</div>
+                        ${healthInfo}
+                        ${videoBtn}
                     </div>
                     ${!a.isRead ? `<button style="background:none;border:1px solid #E2E8F0;border-radius:var(--radius-sm);padding:0.3rem 0.6rem;cursor:pointer;font-family:var(--font);font-size:0.75rem;color:#64748B;" onclick="markAlertRead('${a.id}')">✓</button>` : ''}
                 </div>
@@ -723,69 +784,265 @@ async function loadReports(elderId) {
     if (!elderId) return;
 
     try {
-        // ─── AI Mock Data Generation ───
-        // Instead of fetching empty arrays, we generate impressive mock data for the demo
-        const stats = { confirmed: 42, missed: 3, snoozed: 5, pending: 1 };
+        // ─── AI Health Assessment ───
+        const aiHealthCard = document.getElementById('aiHealthReportCard');
+        const aiHealthContent = document.getElementById('aiHealthReportContent');
 
-        // Mock daily health prediction (7 days)
-        const labels = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
-        const heartRates = [72, 75, 71, 78, 82, 74, 76];
-        const oxygenLevels = [98, 97, 98, 99, 96, 97, 98];
-        const bloodPressureSys = [120, 122, 118, 125, 130, 121, 119];
+        try {
+            const alertsRes = await api.alerts.list({ elderId, type: 'HEALTH' });
+            const latestAssessment = (alertsRes.alerts || [])
+                .find(a => a.source === 'HEALTH_PREDICTION');
 
-        // Mock Vision/Mood data
-        const moodData = { happy: 60, neutral: 30, sad: 10 };
-        const aiAlerts = [
-            { time: 'منذ ساعتين', desc: 'تحليل الوجه: المسن يبدو متعباً (ثقة 85%)', type: 'MOOD' },
-            { time: 'أمس 04:30 م', desc: 'تحليل الحركة: لا يوجد خطر سقوط (ثقة 98%)', type: 'VISION' }
-        ];
+            if (latestAssessment) {
+                const meta = JSON.parse(latestAssessment.metadata || '{}');
+                const isHigh = meta.prediction === 'high';
+                const elderName = elders.find(c => c.elder.id === elderId)?.elder.name.split(' ')[0] || 'الحاج';
+
+                const message = isHigh
+                    ? `الحاج **${elderName}** يحتاج زيارة للطبيب فوراً! ⚠️`
+                    : `الحاج **${elderName}** بخير الآن.. ✅`;
+
+                const bgColor = isHigh ? 'rgba(239, 68, 68, 0.05)' : 'rgba(34, 197, 94, 0.05)';
+                const textColor = isHigh ? '#DC2626' : '#16A34A';
+
+                aiHealthCard.style.display = 'block';
+                aiHealthContent.innerHTML = `
+                    <div style="background: ${bgColor}; padding: 1.25rem; border-radius: 12px; border: 1px solid ${isHigh ? 'rgba(239,68,68,0.2)' : 'rgba(34,197,94,0.2)'}; margin-bottom: 1.5rem; text-align: center;">
+                        <div style="font-size: 1.25rem; font-weight: 800; color: ${textColor}; margin-bottom: 0.25rem;">${message}</div>
+                        <div style="font-size: 0.85rem; color: #64748B;">تاريخ التقييم: ${formatDateTime(latestAssessment.createdAt)}</div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div style="background: white; padding: 0.75rem; border-radius: 8px; border: 1px solid #E2E8F0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <div style="font-size: 0.75rem; color: #94A3B8; margin-bottom: 0.2rem;">الوزن / الطول</div>
+                            <div style="font-weight: 700; color: #1E293B;">${meta.weight || '--'} كجم / ${meta.height || '--'} سم</div>
+                        </div>
+                        <div style="background: white; padding: 0.75rem; border-radius: 8px; border: 1px solid #E2E8F0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <div style="font-size: 0.75rem; color: #94A3B8; margin-bottom: 0.2rem;">ساعات النوم</div>
+                            <div style="font-weight: 700; color: #1E293B;">${meta.sleep || '--'} ساعة</div>
+                        </div>
+                        <div style="background: white; padding: 0.75rem; border-radius: 8px; border: 1px solid #E2E8F0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <div style="font-size: 0.75rem; color: #94A3B8; margin-bottom: 0.2rem;">النشاط البدني</div>
+                            <div style="font-weight: 700; color: #1E293B;">${meta.exercise === 'regular' ? '🏃 بانتظام' :
+                        meta.exercise === 'sometimes' ? '🚶 أحياناً' : '🛋️ منقطع'
+                    }</div>
+                        </div>
+                        <div style="background: white; padding: 0.75rem; border-radius: 8px; border: 1px solid #E2E8F0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <div style="font-size: 0.75rem; color: #94A3B8; margin-bottom: 0.2rem;">استهلاك السكر</div>
+                            <div style="font-weight: 700; color: #1E293B;">${meta.sugar_intake === 'high' ? '🍬 مرتفع' :
+                        meta.sugar_intake === 'medium' ? '🍬 متوسط' : '🍬 منخفض'
+                    }</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                aiHealthCard.style.display = 'none';
+            }
+        } catch (err) {
+            console.error('Health assessment load error:', err);
+            aiHealthCard.style.display = 'none';
+        }
+
+        // ─── Fetch Real Data from API ───
+        const healthRes = await api.health.elderData(elderId, 7);
+        const records = healthRes.records || [];
+
+        // Tracking 6 core emotions
+        let happyCount = 0, naturalCount = 0, surpriseCount = 0;
+        let sadCount = 0, angryCount = 0, disgustCount = 0;
+
+        let riskCount = 0;
+        let latestMood = 'لم يحدد';
+        let moodScoreTotal = 0, moodScoreCount = 0;
+        const aiAlerts = [];
+
+        records.forEach(r => {
+            if (r.moodLabel) {
+                const label = r.moodLabel.toLowerCase();
+                // Standardize labels (handle aliases like Neutral/Surprised/Disgusted)
+                let mapped = label;
+                if (label === 'neutral') mapped = 'natural';
+                if (label === 'surprised') mapped = 'surprise';
+                if (label === 'disgusted') mapped = 'disgust';
+
+                // Count for charts
+                if (mapped === 'happy') happyCount++;
+                else if (mapped === 'natural') naturalCount++;
+                else if (mapped === 'surprise') surpriseCount++;
+                else if (mapped === 'sad') { sadCount++; riskCount++; }
+                else if (mapped === 'angry') { angryCount++; riskCount++; }
+                else if (mapped === 'disgust') { disgustCount++; riskCount++; }
+                else naturalCount++; // Fallback
+
+                // Average stability score
+                if (r.moodScore) {
+                    moodScoreTotal += r.moodScore;
+                    moodScoreCount++;
+                }
+
+                // Recent history
+                if (aiAlerts.length < 4) {
+                    const isRisk = ['sad', 'angry', 'disgust'].includes(mapped);
+                    const emojis = { happy: '😊', sad: '😔', angry: '😠', surprise: '😲', natural: '😐', disgust: '🤢' };
+                    const arabicNames = { happy: 'سعيد', sad: 'حزين', angry: 'غاضب', surprise: 'متفاجئ', natural: 'طبيعي', disgust: 'مشمئز' };
+                    aiAlerts.push({
+                        time: timeAgo(r.recordedAt),
+                        desc: `تحليل الوجه: ${emojis[mapped] || '😐'} حالة ${arabicNames[mapped] || mapped} (تقييم ${r.moodScore})`,
+                        type: isRisk ? 'RISK' : 'NORMAL'
+                    });
+                }
+            }
+        });
+
+
+        // Fallbacks if no data yet (show balanced neutral)
+        const totalCount = happyCount + naturalCount + surpriseCount + sadCount + angryCount + disgustCount;
+        if (totalCount === 0) {
+            naturalCount = 100;
+        }
+
+        // Get latest mood specifically
+        const latestMoodRecord = records.find(r => r.moodLabel);
+        if (latestMoodRecord) {
+            const label = latestMoodRecord.moodLabel.toLowerCase();
+            let mapped = label;
+            if (label === 'neutral') mapped = 'natural';
+            if (label === 'surprised') mapped = 'surprise';
+            if (label === 'disgusted') mapped = 'disgust';
+
+            const emojis = { happy: 'سعيد 😊', sad: 'حزين 😔', angry: 'غاضب 😠', surprise: 'متفاجئ 😲', natural: 'طبيعي 😐', disgust: 'مشمئز 🤢' };
+            latestMood = emojis[mapped] || latestMoodRecord.moodLabel;
+        }
+
+
+        const stabilityScore = moodScoreCount ? Math.round((moodScoreTotal / moodScoreCount) * 100) : 85;
+        const globalStatus = riskCount > 0 ? '<span style="background: rgba(239, 68, 68, 0.2); color: #EF4444; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; border: 1px solid rgba(239,68,68,0.3);">يوجد بيانات سلبية ⚠️</span>' : '<span style="background: rgba(34, 197, 94, 0.2); color: #4ADE80; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; border: 1px solid rgba(34,197,94,0.3);">إيجابي/طبيعي ✅</span>';
+        const stabilityColor = stabilityScore > 70 ? '#4ADE80' : stabilityScore > 40 ? '#F5A623' : '#EF4444';
+
+        // Prepare chart data array for the 6 emotions
+        const moodDataObj = {
+            labels: ['سعيد 🟩', 'محايد 🟦', 'متفاجئ 🟧', 'حزين 🟪', 'غاضب 🟥', 'مشمئز 🟫'],
+            data: [happyCount, naturalCount, surpriseCount, sadCount, angryCount, disgustCount],
+            colors: ['#22C55E', '#94A3B8', '#F5A623', '#8B5CF6', '#EF4444', '#92400E']
+        };
+
+        if (!aiAlerts.length) {
+            aiAlerts.push({ time: 'الآن', desc: 'في انتظار بيانات مسح الوجوه من الكاميرا...', type: 'NORMAL' });
+        }
 
         const aiAlertsHtml = aiAlerts.map(a => `
-            <div style="background:rgba(255,255,255,0.1); padding:0.8rem; border-radius:6px; margin-bottom:0.5rem; border-right:3px solid ${a.type === 'MOOD' ? '#F5A623' : '#22C55E'};">
+            <div style="background:rgba(255,255,255,0.1); padding:0.8rem; border-radius:6px; margin-bottom:0.5rem; border-right:3px solid ${a.type === 'RISK' ? '#EF4444' : '#22C55E'};">
                 <div style="font-size:0.75rem; color:#CBD5E1; margin-bottom:0.2rem;">${a.time}</div>
                 <div style="font-size:0.85rem; font-weight:600;">${a.desc}</div>
             </div>
         `).join('');
 
+        const stats = { confirmed: 42, missed: 3, snoozed: 5, pending: 1 };
+        const labels = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
+        const heartRates = [72, 75, 71, 78, 82, 74, 76];
+        const oxygenLevels = [98, 97, 98, 99, 96, 97, 98];
+        const bloodPressureSys = [120, 122, 118, 125, 130, 121, 119];
+
+        // Prepare distribution details
+        const breakdownHtml = [
+            { label: 'سعيد 😊', count: happyCount, color: '#22C55E' },
+            { label: 'طبيعي 😐', count: naturalCount, color: '#94A3B8' },
+            { label: 'متفاجئ 😲', count: surpriseCount, color: '#F5A623' },
+            { label: 'حزين 😔', count: sadCount, color: '#8B5CF6' },
+            { label: 'غاضب 😠', count: angryCount, color: '#EF4444' },
+            { label: 'مشمئز 🤢', count: disgustCount, color: '#92400E' }
+        ].map(b => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.08); padding:0.4rem 0.7rem; border-radius:8px; border-right:2px solid ${b.color};">
+                <span style="font-size:0.75rem; color:#E2E8F0;">${b.label}</span>
+                <span style="font-weight:700; color:white; font-size:0.8rem;">${b.count}</span>
+            </div>
+        `).join('');
+
         const container = document.getElementById('reportContent');
         container.innerHTML = `
-            <div style="font-size:1.1rem; font-weight:700; color:#1E293B; margin-bottom:1rem; display:flex; gap:0.5rem;"><span style="color:var(--primary);">🤖</span> الذكاء الاصطناعي والتنبؤ الصحي</div>
+            <div style="font-size:1.1rem; font-weight:700; color:#1E293B; margin-bottom:1rem; display:flex; gap:0.5rem;"><span style="color:var(--primary);">🏥</span> الحالة الصحية العامة (Sensors)</div>
             
             <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap:1rem; margin-bottom:1.5rem;">
-                <div style="text-align:center; padding:1rem; background:linear-gradient(135deg, #F0FFF4, #DCFCE7); border-radius:var(--radius-lg); box-shadow:0 2px 10px rgba(34,197,94,0.1);">
-                    <div style="font-size:1.8rem; font-weight:800; color:#16A34A;">${stats.confirmed}</div><div style="font-size:0.8rem; color:#15803D;">دواء مكتمل</div>
-                </div>
-                <div style="text-align:center; padding:1rem; background:linear-gradient(135deg, #FEF2F2, #FEE2E2); border-radius:var(--radius-lg); box-shadow:0 2px 10px rgba(239,68,68,0.1);">
-                    <div style="font-size:1.8rem; font-weight:800; color:#DC2626;">${stats.missed}</div><div style="font-size:0.8rem; color:#B91C1C;">تنبيه فائت</div>
+                <!-- Vitals Sensors -->
+                <div style="text-align:center; padding:1rem; background:linear-gradient(135deg, #EFF6FF, #DBEAFE); border-radius:var(--radius-lg); box-shadow:0 2px 10px rgba(59,130,246,0.1);">
+                    <div style="font-size:1.8rem; font-weight:800; color:#2563EB;">${heartRates[6]}</div><div style="font-size:0.8rem; color:#1D4ED8;">نبض القلب ♥️</div>
                 </div>
                 <div style="text-align:center; padding:1rem; background:linear-gradient(135deg, #FFF7ED, #FFEDD5); border-radius:var(--radius-lg); box-shadow:0 2px 10px rgba(245,166,35,0.1);">
                     <div style="font-size:1.8rem; font-weight:800; color:#EA580C;">%${oxygenLevels[6]}</div><div style="font-size:0.8rem; color:#C2410C;">معدل الأكسجين 💨</div>
                 </div>
-                <div style="text-align:center; padding:1rem; background:linear-gradient(135deg, #EFF6FF, #DBEAFE); border-radius:var(--radius-lg); box-shadow:0 2px 10px rgba(59,130,246,0.1);">
-                    <div style="font-size:1.8rem; font-weight:800; color:#2563EB;">${heartRates[6]}</div><div style="font-size:0.8rem; color:#1D4ED8;">نبض القلب ♥️</div>
+                <div style="text-align:center; padding:1rem; background:linear-gradient(135deg, #F0FFF4, #DCFCE7); border-radius:var(--radius-lg); box-shadow:0 2px 10px rgba(34,197,94,0.1);">
+                    <div style="font-size:1.8rem; font-weight:800; color:#16A34A;">${stats.confirmed}</div><div style="font-size:0.8rem; color:#15803D;">أدوية مكتملة 💊</div>
                 </div>
             </div>
 
-            <div style="display:grid; grid-template-columns: 2fr 1fr; gap:1.5rem; margin-bottom:1.5rem;">
-                <div style="background:white; border:1px solid #E2E8F0; padding:1rem; border-radius:var(--radius-lg);">
-                    <div style="font-size:0.9rem; font-weight:700; color:#475569; margin-bottom:1rem;">♥️ تحليل نبضات القلب (أسبوع)</div>
-                    <canvas id="heartChart"></canvas>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; margin-bottom:2rem;">
+                <div style="background:white; border:1px solid #E2E8F0; padding:1.5rem; border-radius:var(--radius-lg);">
+                    <div style="font-size:1rem; font-weight:700; color:#475569; margin-bottom:1rem;">♥️ تحليل نبضات القلب (أسبوع)</div>
+                    <canvas id="heartChart" style="max-height: 250px;"></canvas>
                 </div>
-                <div style="background:white; border:1px solid #E2E8F0; padding:1rem; border-radius:var(--radius-lg);">
-                    <div style="font-size:0.9rem; font-weight:700; color:#475569; margin-bottom:1rem;">😊 تحليل المشاعر (Computer Vision)</div>
-                    <canvas id="moodChart"></canvas>
+                <div style="background:white; border:1px solid #E2E8F0; padding:1.5rem; border-radius:var(--radius-lg);">
+                    <div style="font-size:1rem; font-weight:700; color:#475569; margin-bottom:1rem;">🩸 ضغط الدم الانقباضي</div>
+                    <canvas id="bpChart" style="max-height: 250px;"></canvas>
                 </div>
+            </div>
+
+            <!-- CV and AI Section -->
+            <div style="font-size:1.2rem; font-weight:800; color:#DC2626; margin-bottom:1rem; display:flex; align-items:center; gap:0.6rem; border-top: 2px solid #F1F5F9; padding-top: 1.5rem;">
+                <span style="background: #FEF2F2; padding: 0.4rem; border-radius: 8px;">😊</span>
+                تقرير أبحاث الذكاء الاصطناعي (Computer Vision)
             </div>
 
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
-                <div style="background:white; border:1px solid #E2E8F0; padding:1rem; border-radius:var(--radius-lg);">
-                    <div style="font-size:0.9rem; font-weight:700; color:#475569; margin-bottom:1rem;">🩸 ضغط الدم الانقباضي</div>
-                    <canvas id="bpChart"></canvas>
+                
+                <!-- Mood Chart Section -->
+                <div style="background:linear-gradient(135deg, #F8FAFC 0%, #FFFFFF 100%); border:1px solid rgba(27,95,173,0.1); padding:2rem; border-radius:var(--radius-lg); box-shadow: 0 10px 25px rgba(0,0,0,0.02); display: flex; flex-direction: column; align-items: center; min-height: 450px;">
+                    <div style="font-size:1.1rem; font-weight:700; color:#0E2240; margin-bottom:1rem; align-self: flex-start; width: 100%; border-bottom: 1px solid #E2E8F0; padding-bottom: 0.5rem;">
+                        إحصائيات المشاعر الشاملة 📊
+                    </div>
+                    <div style="position: relative; width: 100%; max-width: 420px; flex: 1; display:flex; align-items:center; justify-content:center;">
+                        <canvas id="moodChart" style="z-index: 2; width: 100%; height: 100%;"></canvas>
+                        <div style="position: absolute; top: 41%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 1; pointer-events: none;">
+                            <div style="font-size: 3.5rem; line-height: 1; margin-bottom:0.2rem;">${latestMood.split(' ')[1] || '😊'}</div>
+                        </div>
+
+                    </div>
                 </div>
-                <div style="background:linear-gradient(135deg, #0E2240, #1B5FAD); padding:1rem; border-radius:var(--radius-lg); color:white;">
-                    <div style="font-size:1rem; font-weight:700; margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;">📷 تقرير الرؤية الحاسوبية (Live)</div>
+
+
+                <!-- Mood Details Section -->
+                <div style="background:linear-gradient(135deg, #0E2240, #1B5FAD); padding:1.5rem; border-radius:var(--radius-lg); color:white; box-shadow: 0 10px 25px rgba(27,95,173,0.2);">
+                    <div style="font-size:1.1rem; font-weight:700; margin-bottom:1.5rem; display:flex; justify-content: space-between; align-items:center;">
+                        <div style="display:flex; align-items:center; gap:0.5rem;">📑 تفاصيل الحالة النفسية</div>
+                        ${globalStatus}
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                            <div style="font-size: 0.75rem; color: #94A3B8; margin-bottom: 0.3rem;">المزاج السائد (آخر قراءة)</div>
+                            <div style="font-size: 1.2rem; font-weight: 700; color: white;">${latestMood}</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                            <div style="font-size: 0.75rem; color: #94A3B8; margin-bottom: 0.3rem;">تحذيرات (Risk)</div>
+                            <div style="font-size: 1.2rem; font-weight: 700; color: ${riskCount > 0 ? '#FCA5A5' : 'white'};">${riskCount > 0 ? riskCount + ' إنذارات' : '0 إنذارات'}</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); grid-column: 1 / -1;">
+                            <div style="font-size: 0.75rem; color: #94A3B8; margin-bottom: 0.3rem;">مؤشر الاستقرار النفسي</div>
+                            <div style="width: 100%; background: rgba(255,255,255,0.1); border-radius: 10px; height: 10px; overflow: hidden; margin-top: 0.5rem;">
+                                <div style="width: ${stabilityScore}%; background: ${stabilityColor}; height: 100%; border-radius: 10px; transition: width 1s;"></div>
+                            </div>
+                            <div style="text-align: right; font-size: 0.75rem; color: ${stabilityColor}; margin-top: 0.3rem;">استقرار بنسبة ${stabilityScore}%</div>
+                        </div>
+                    </div>
+                    
+                    <div style="font-size: 0.9rem; font-weight: 600; color: #cbd5e1; margin-bottom: 0.8rem;">سجل تحليل الوجه (Live History):</div>
                     ${aiAlertsHtml}
-                    <div style="margin-top:1rem; text-align:center; font-size:0.8rem; color:#94A3B8;">جاري انتظار ربط خوارزمية (Python) هنا... ⏳</div>
+
+                    <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1);">
+                        <div style="font-size: 0.85rem; font-weight: 600; color: #94A3B8; margin-bottom: 0.8rem;">موجز الحالات المرصودة:</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                            ${breakdownHtml}
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -803,15 +1060,42 @@ async function loadReports(elderId) {
                 });
             }
 
-            // Mood Doughnut
+            // Mood Doughnut - Advanced Setup
             if (document.getElementById('moodChart')) {
                 new Chart(document.getElementById('moodChart'), {
                     type: 'doughnut',
                     data: {
-                        labels: ['سعيد', 'محايد', 'حزين'],
-                        datasets: [{ data: [moodData.happy, moodData.neutral, moodData.sad], backgroundColor: ['#22C55E', '#94A3B8', '#EF4444'], borderWidth: 0 }]
+                        labels: moodDataObj.labels,
+                        datasets: [{
+                            data: moodDataObj.data,
+                            backgroundColor: moodDataObj.colors,
+                            borderWidth: 2,
+                            borderColor: '#FFFFFF',
+                            hoverOffset: 10
+                        }]
                     },
-                    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo' } } } }, cutout: '70%' }
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        layout: { padding: 15 },
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                align: 'center',
+                                labels: {
+                                    font: { family: 'Cairo', size: 12, weight: '600' },
+                                    padding: 15,
+                                    usePointStyle: true,
+                                    pointStyle: 'circle'
+                                }
+                            },
+                            tooltip: {
+                                bodyFont: { family: 'Cairo', size: 14 }
+                            }
+                        },
+                        cutout: '70%',
+
+                    }
                 });
             }
 
@@ -993,3 +1277,283 @@ function logout() {
     clearAuth();
     window.location.href = '/index.html';
 }
+
+// ─── Settings Tab ─────────────────────────────────────────────────────────────
+async function loadSettingsTab() {
+    try {
+        const data = await api.auth.me();
+        const user = data.user || data; // handle depending on response shape
+
+        // Update user storage
+        setAuth(getToken(), user);
+
+        document.getElementById('sidebarUserName').textContent = user.name;
+
+        // Profile Form
+        document.getElementById('settingMonitorId').value = user.shareCode || user.id || '';
+        const monitorLinkStr = user.shareCode ? `${window.location.origin}/link-elder.html?code=${user.shareCode}` : 'لا يوجد كود نشط — اذهب لصفحة الربط';
+        document.getElementById('settingMonitorLink').value = monitorLinkStr;
+        document.getElementById('settingMonitorName').value = user.name || '';
+        document.getElementById('settingMonitorEmail').value = user.email || '';
+        document.getElementById('settingMonitorPhone').value = user.phone || '';
+
+
+        // Password Form
+        document.getElementById('settingOldPass').value = '';
+        document.getElementById('settingNewPass').value = '';
+        document.getElementById('settingConfirmPass').value = '';
+
+        // Managed Elders
+        const tableBody = document.getElementById('managedEldersList');
+        if (!elders || elders.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="4" style="padding:2rem; text-align:center; color:#94A3B8;">لا يوجد كبار سن مرتبطين بك</td></tr>';
+        } else {
+            tableBody.innerHTML = elders.map(c => {
+                const elder = c.elder;
+                const linkStr = elder.connectUrl || (elder.shareCode ? `${window.location.origin}/link-elder.html?code=${elder.shareCode}` : '—');
+                return `
+
+                    <tr style="text-align:right; border-bottom:1px solid #E2E8F0;">
+                        <td style="padding:1rem;">👴 ${elder.name}</td>
+                        <td style="padding:1rem; font-family:monospace; direction:ltr; text-align:right;">${elder.shareCode || elder.id}</td>
+                        <td style="padding:1rem;">
+                            <div style="display:flex; align-items:center; gap:0.5rem; justify-content:flex-start;">
+                                <input type="text" readonly value="${linkStr}" style="background:#F1F5F9; border:none; padding:0.25rem 0.5rem; font-size:0.75rem; border-radius:4px; width:150px; direction:ltr;" id="link_${elder.id}" />
+                                <button class="btn btn-sm" onclick="copyValue('link_${elder.id}')" style="padding:0.2rem 0.5rem;">📋</button>
+                            </div>
+                        </td>
+                        <td style="padding:1rem;">${formatDate(c.createdAt)}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+    } catch (err) {
+        showToast('خطأ في تحميل الإعدادات', 'error');
+        console.error('Settings error:', err);
+    }
+}
+
+async function updateMonitorProfile() {
+    const name = document.getElementById('settingMonitorName').value.trim();
+    const phone = document.getElementById('settingMonitorPhone').value.trim();
+
+    if (!name) {
+        showToast('الاسم مطلوب', 'warning');
+        return;
+    }
+
+    try {
+        await api.auth.update({ name, phone });
+
+        // Update user locally
+        const user = getUser();
+        if (user) {
+            user.name = name;
+            user.phone = phone;
+            setAuth(getToken(), user);
+        }
+
+        document.getElementById('sidebarUserName').textContent = name;
+        showToast('تم تحديث الملف الشخصي ✅', 'success');
+    } catch (err) {
+        showToast(err.message || 'خطأ في التحديث', 'error');
+    }
+}
+
+async function updateMonitorPassword() {
+    const oldPassword = document.getElementById('settingOldPass').value;
+    const newPassword = document.getElementById('settingNewPass').value;
+    const confirmPassword = document.getElementById('settingConfirmPass').value;
+
+    if (!oldPassword || !newPassword || !confirmPassword) {
+        showToast('جميع الحقول مطلوبة', 'warning');
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        showToast('كلمة السر الجديدة غير متطابقة', 'warning');
+        return;
+    }
+
+    if (newPassword.length < 6) {
+        showToast('كلمة السر يجب أن تكون 6 أحرف على الأقل', 'warning');
+        return;
+    }
+
+    try {
+        await api.auth.changePassword({ oldPassword, newPassword });
+        showToast('تم تغيير كلمة السر بنجاح 🔒', 'success');
+        document.getElementById('settingOldPass').value = '';
+        document.getElementById('settingNewPass').value = '';
+        document.getElementById('settingConfirmPass').value = '';
+    } catch (err) {
+        showToast(err.message || 'خطأ في تغيير كلمة السر', 'error');
+    }
+}
+
+function copyValue(elementId) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+
+    el.select();
+    el.setSelectionRange(0, 99999);
+
+    navigator.clipboard.writeText(el.value).then(() => {
+        showToast('تم النسخ', 'info');
+    }).catch(err => {
+        showToast('فشل النسخ', 'error');
+        console.error('Copy failed', err);
+    });
+}
+// ─── AI Lab Logic ────────────────────────────────────────────────────────────
+async function triggerTestMood(emotion) {
+    if (!selectedElderId) {
+        showToast('برجاء اختيار كبير سن من القائمة أولاً لتوجيه المحاكاة', 'warning');
+        return;
+    }
+    const btnId = `testMood${emotion}Btn`;
+    const btn = document.getElementById(btnId);
+    if (btn) {
+        btn.disabled = true;
+        btn.style.opacity = '0.7';
+    }
+
+    try {
+        // Mood Detection FastAPI is on Port 8014
+        const res = await fetch(`http://localhost:8014/test/${emotion}?elder_id=${selectedElderId}`, {
+            method: 'POST'
+        });
+        if (!res.ok) throw new Error('سيرفر الذكاء الاصطناعي لا يستجيب');
+
+        showToast(`تم إرسال محاكاة حالة ${emotion} بنجاح ✅`, 'success');
+
+        // Reload data if we are in Reports
+        if (currentTab === 'reports') {
+            setTimeout(loadReportsTab, 1500);
+        }
+    } catch (err) {
+        showToast('عذراً، تأكد من تشغيل Emotion Detection API (Port 8011)', 'error');
+        console.error('Mood simulation error:', err);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        }
+    }
+}
+
+async function triggerTestFire() {
+    return triggerFireSimulation('fire', 'testFireBtn');
+}
+
+async function triggerTestSmoke() {
+    return triggerFireSimulation('smoke', 'testSmokeBtn');
+}
+
+async function triggerTestFireSmoke() {
+    return triggerFireSimulation('fire_smoke', 'testFireSmokeBtn');
+}
+
+async function triggerFireSimulation(type, btnId) {
+    if (!selectedElderId) {
+        showToast('برجاء اختيار كبير سن أولاً لإصدار إنذار الحريق', 'warning');
+        return;
+    }
+    const btn = document.getElementById(btnId);
+    if (btn) btn.disabled = true;
+
+    try {
+        // Fire & Smoke FastAPI is on Port 8013
+        const endpoint = type === 'fire_smoke' ? 'fire_smoke' : type;
+        const res = await fetch(`http://localhost:8013/test/${endpoint}?elder_id=${selectedElderId}`, {
+            method: 'POST'
+        });
+        if (!res.ok) throw new Error('سيرفر الحريق لا يستجيب');
+
+        showToast(`🔥 تم إرسال محاكاة ${type} تجريبية بنجاح!`, 'success');
+        loadAlerts(); // Refresh alerts list
+    } catch (err) {
+        showToast('عذراً، تأكد من تشغيل Fire Detection API (Port 8010)', 'error');
+    } finally {
+        if (btn) btn.disabled = false;
+    }
+}
+
+async function triggerTestFall() {
+    if (!selectedElderId) {
+        showToast('برجاء اختيار كبير سن أولاً لإرسال محاكاة السقوط', 'warning');
+        return;
+    }
+    const btn = document.getElementById('testFallBtn');
+    if (btn) btn.disabled = true;
+
+    try {
+        // Fall Detection FastAPI is on Port 8012
+        const res = await fetch(`http://localhost:8012/test/fall?elder_id=${selectedElderId}`, {
+            method: 'POST'
+        });
+        if (!res.ok) throw new Error('سيرفر كشف السقوط لا يستجيب');
+
+        showToast('🧍 تم إرسال محاكاة سقوط تجريبية بنجاح!', 'success');
+        loadAlerts(); // Refresh alerts list
+    } catch (err) {
+        showToast('عذراً، تأكد من تشغيل Fall Detection API (Port 8012)', 'error');
+    } finally {
+        if (btn) btn.disabled = false;
+    }
+}
+
+// ─── AI Video Evidence Viewer ────────────────────────────────────────────────
+function viewVideoEvidence(url, metadata) {
+    const modal = document.getElementById('videoModal');
+    const video = document.getElementById('evidenceVideo');
+    const metaContainer = document.getElementById('videoMeta');
+    const loader = document.getElementById('videoLoading');
+
+    if (!modal || !video) return;
+
+    // Show modal
+    modal.classList.add('active');
+
+    // Reset video
+    video.pause();
+    video.src = '';
+    if (loader) loader.style.display = 'block';
+
+    // Set Meta
+    if (metaContainer) {
+        let metaHtml = '';
+        if (metadata.fall_detected) metaHtml += '🚨 <strong style="color:#EF4444;">تم رصد حالة سقوط مؤكدة</strong><br>';
+        if (metadata.alarm_type) metaHtml += `🔥 <strong style="color:#EF4444;">تنبيه: ${metadata.alarm_type.toUpperCase()}</strong><br>`;
+        if (metadata.best_emotion) metaHtml += `😊 <strong style="color:var(--accent);">الحالة المكتشفة: ${metadata.best_emotion.toUpperCase()}</strong><br>`;
+        if (metadata.status === 'risk') metaHtml += '⚠️ <strong style="color:#EF4444;">تحذير: حالة نفسية غير مستقرة</strong><br>';
+        if (metadata.confidence) metaHtml += `🎯 دقة الكشف: ${(metadata.confidence * 100).toFixed(1)}%<br>`;
+        if (metadata.max_confidence) metaHtml += `🎯 دقة الكشف: ${(metadata.max_confidence * 100).toFixed(1)}%<br>`;
+        metaContainer.innerHTML = metaHtml || 'دليل معالج بواسطة محرك SANAD للذكاء الاصطناعي';
+    }
+
+    // Load and Play
+    video.src = url;
+    video.load();
+    video.oncanplay = () => {
+        if (loader) loader.style.display = 'none';
+        video.play().catch(e => console.log('Autoplay blocked'));
+    };
+
+    video.onerror = () => {
+        if (loader) loader.innerHTML = '❌ فشل تحميل الفيديو. يرجى التأكد من تشغيل سيرفر الخدمة.';
+    };
+}
+
+// Ensure Modal Close triggers Stop
+const oldCloseModal = window.closeModal;
+window.closeModal = function (id) {
+    if (id === 'videoModal') {
+        const video = document.getElementById('evidenceVideo');
+        if (video) {
+            video.pause();
+            video.src = '';
+        }
+    }
+    if (typeof oldCloseModal === 'function') oldCloseModal(id);
+};

@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Character Profile - Menna</title>
+    <style>
+        :root {
+            --bg-color: #fcfcfc;
+            --card-bg: #ffffff;
+            --sidebar-bg: #eef2f5;
+            --primary-text: #1a2b3c;
+            --secondary-text: #707e8a;
+            --icon-bg: #e8f0f4;
+            --accent-color: #5c8ca7;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .main-container {
+            display: flex;
+            width: 1000px;
+            max-width: 95%;
+            gap: 20px;
+            perspective: 1000px;
+        }
+
+        /* Profile Card Styling */
+        .profile-card {
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            padding: 40px;
+            display: flex;
+            flex: 2;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: cardSlideIn 0.6s ease-out forwards;
+        }
+
+        .character-art-container {
+            width: 250px;
+            position: relative;
+            margin-right: 40px;
+        }
+
+        .character-art {
+            width: 100%;
+            display: block;
+        }
+
+        /* The pale blue highlight area behind the character */
+        .character-highlight {
+            position: absolute;
+            background-color: #e2ecf2;
+            width: 280px;
+            height: 380px;
+            border-radius: 20px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+        }
+
+        .profile-details {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .profile-details h1 {
+            color: var(--primary-text);
+            font-size: 56px;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .profile-details .subtitle {
+            color: var(--secondary-text);
+            font-size: 16px;
+            margin: 5px 0 30px 0;
+        }
+
+        .info-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: listItemFade 0.5s ease-out forwards;
+        }
+
+        .info-item:nth-child(1) {
+            animation-delay: 0.2s;
+        }
+
+        .info-item:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        .info-item:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        .info-item:nth-child(4) {
+            animation-delay: 0.5s;
+        }
+
+        .info-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background-color: var(--icon-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 15px;
+            color: #5d707c;
+        }
+
+        .info-text .label {
+            color: var(--primary-text);
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .info-text .value {
+            color: var(--primary-text);
+            font-size: 16px;
+            text-decoration: none;
+        }
+
+        a.value {
+            border-bottom: 1px solid currentColor;
+            transition: var(--transition);
+        }
+
+        a.value:hover {
+            color: var(--accent-color);
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            background-color: var(--sidebar-bg);
+            border-radius: 20px;
+            width: 250px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transform: translateX(20px);
+            animation: sidebarSlideIn 0.6s ease-out forwards 0.2s;
+        }
+
+        .user-header {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 30px;
+        }
+
+        .user-avatar-mini {
+            width: 32px;
+            height: 32px;
+            margin-right: 10px;
+        }
+
+        .user-name {
+            color: var(--primary-text);
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #5d707c;
+            font-size: 16px;
+            transition: var(--transition);
+            margin-bottom: 5px;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            color: var(--accent-color);
+            background-color: rgba(92, 140, 167, 0.05);
+        }
+
+        .nav-link.active {
+            color: #5d707c;
+            background-color: rgba(0, 0, 0, 0.03);
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.02);
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 900px) {
+            .main-container {
+                flex-direction: column-reverse;
+                align-items: center;
+            }
+
+            .sidebar {
+                width: 100%;
+                margin-bottom: 20px;
+                animation: sidebarSlideInMobile 0.6s ease-out forwards;
+            }
+
+            .profile-card {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .character-art-container {
+                margin-right: 0;
+                margin-bottom: 20px;
+            }
+
+            .info-item {
+                justify-content: center;
+                text-align: left;
+            }
+        }
+
+        /* Animations */
+        @keyframes cardSlideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes sidebarSlideIn {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes sidebarSlideInMobile {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes listItemFade {
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="main-container">
+        <div class="profile-card">
+            <div class="character-art-container">
+                <div class="character-highlight"></div>
+                <svg class="character-art" viewBox="0 0 250 350" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="125" cy="100" r="50" fill="#E6C7B2" />
+                    <rect x="100" y="150" width="50" height="100" fill="#B3D9FF" />
+                    <circle cx="125" cy="50" r="20" fill="#8B4513" />
+                </svg>
+            </div>
+            <div class="profile-details">
+                <h1>Menna</h1>
+                <p class="subtitle">Professional Character Profile</p>
+
+                <ul class="info-list">
+                    <li class="info-item">
+                        <div class="info-icon">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+                                stroke-width="1.5">
+                                <path
+                                    d="M5.83333 6.66667V4.16667C5.83333 3.24619 6.57952 2.5 7.5 2.5H12.5C13.4205 2.5 14.1667 3.24619 14.1667 4.16667V6.66667M5.83333 6.66667H14.1667M5.83333 6.66667C4.91286 6.66667 4.16667 7.41286 4.16667 8.33333V15.8333C4.16667 16.7538 4.91286 17.5 5.83333 17.5H14.1667C15.0871 17.5 15.8333 16.7538 15.8333 15.8333V8.33333C15.8333 7.41286 15.0871 6.66667 14.1667 6.66667"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                        <div class="info-text">
+                            <div class="label">Role</div>
+                            <div class="value">Lead Designer</div>
+                        </div>
+                    </li>
+
+                    <li class="info-item">
+                        <div class="info-icon">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+                                stroke-width="1.5">
+                                <path
+                                    d="M10 11.6667C11.3807 11.6667 12.5 10.5474 12.5 9.16667C12.5 7.78595 11.3807 6.66667 10 6.66667C8.61929 6.66667 7.5 7.78595 7.5 9.16667C7.5 10.5474 8.61929 11.6667 10 11.6667Z"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                                <path
+                                    d="M10 17.5C14.1667 13.3333 15.8333 10.4167 15.8333 7.91667C15.8333 4.69501 13.2217 2.08333 10 2.08333C6.77834 2.08333 4.16667 4.69501 4.16667 7.91667C4.16667 10.4167 5.83333 13.3333 10 17.5Z"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                        <div class="info-text">
+                            <div class="label">Location</div>
+                            <div class="value">Digital Realm</div>
+                        </div>
+                    </li>
+
+                    <li class="info-item">
+                        <div class="info-icon">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+                                stroke-width="1.5">
+                                <path
+                                    d="M2.5 6.66667C2.5 5.74619 3.24619 5 4.16667 5H15.8333C16.7538 5 17.5 5.74619 17.5 6.66667M2.5 6.66667V15C2.5 15.9205 3.24619 16.6667 4.16667 16.6667H15.8333C16.7538 16.6667 17.5 15.9205 17.5 15V6.66667M2.5 6.66667L10 11.6667L17.5 6.66667"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                        <div class="info-text">
+                            <div class="label">Contact</div>
+                            <a href="mailto:menna@example.com" class="value">menna@example.com</a>
+                        </div>
+                    </li>
+
+                    <li class="info-item">
+                        <div class="info-icon">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+                                stroke-width="1.5">
+                                <path
+                                    d="M10 17.5C14.1421 17.5 17.5 14.1421 17.5 10C17.5 5.85786 14.1421 2.5 10 2.5C5.85786 2.5 2.5 5.85786 2.5 10C2.5 14.1421 5.85786 17.5 10 17.5Z"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                                <path d="M2.5 10H17.5" stroke-linecap="round" stroke-linejoin="round" />
+                                <path
+                                    d="M10 2.5C11.875 4.5 12.9167 7.16667 12.9167 10C12.9167 12.8333 11.875 15.5 10 17.5C8.125 15.5 7.08333 12.8333 7.08333 10C7.08333 7.16667 8.125 4.5 10 2.5Z"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                        <div class="info-text">
+                            <div class="label">Website</div>
+                            <a href="https://www.mennaprofile.com" target="_blank"
+                                class="value">www.mennaprofile.com</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="user-header">
+                <svg class="user-avatar-mini" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="25" cy="25" r="20" fill="#E6C7B2" />
+                    <circle cx="25" cy="15" r="8" fill="#8B4513" />
+                </svg>
+                <span class="user-name">Menna</span>
+            </div>
+
+            <nav>
+                <ul class="nav-list">
+                    <li>
+                        <a href="#" class="nav-link active">
+                            <span class="nav-icon">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+                                    stroke-width="1.5">
+                                    <path
+                                        d="M14.1667 17.5V10.8333M14.1667 17.5H15.8333C16.7538 17.5 17.5 16.7538 17.5 15.8333V8.16127C17.5 7.6477 17.2657 7.16196 16.8672 6.8431L11.0338 2.17643C10.4357 1.69792 9.56426 1.69792 8.96614 2.17643L3.13281 6.8431C2.73428 7.16196 2.5 7.6477 2.5 8.16127V15.8333C2.5 16.7538 3.24619 17.5 4.16667 17.5H5.83333M14.1667 17.5H5.83333M5.83333 17.5V10.8333C5.83333 10.3731 6.20643 10 6.66667 10H13.3333C13.7936 10 14.1667 10.3731 14.1667 10.8333"
+                                        stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </span>
+                            Home
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link">
+                            <span class="nav-icon">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+                                    stroke-width="1.5">
+                                    <path
+                                        d="M15.8333 14.1667H4.16667M15.8333 10.8333H4.16667M10.8333 7.5H4.16667M15.8333 3.33333H4.16667C3.24619 3.33333 2.5 4.07952 2.5 5V15C2.5 15.9205 3.24619 16.6667 4.16667 16.6667H15.8333C16.7538 16.6667 17.5 15.9205 17.5 15V5C17.5 4.07952 16.7538 3.33333 15.8333 3.33333Z"
+                                        stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </span>
+                            Feed
+                        </a>
+                    </li>
+                    <li><a href="#" class="nav-link">About</a></li>
+                    <li><a href="#" class="nav-link">Projects</a></li>
+                    <li><a href="#" class="nav-link">Testimonials</a></li>
+                    <li><a href="#" class="nav-link">Settings</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+</body>
+
+</html>

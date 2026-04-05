@@ -122,4 +122,38 @@ router.put('/profile', authenticate, async (req, res) => {
     }
 });
 
+// ─── Change Password ──────────────────────────────────────────────────────────
+router.put('/profile/password', authenticate, async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ error: 'كلمة السر القديمة والجديدة مطلوبين' });
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+        const isValid = await bcrypt.compare(currentPassword, user.passwordHash);
+
+        if (!isValid) {
+            return res.status(401).json({ error: 'كلمة السر القديمة غلط' });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ error: 'كلمة السر الجديدة لازم تكون 6 حروف على الأقل' });
+        }
+
+        const newPasswordHash = await bcrypt.hash(newPassword, 12);
+
+        await prisma.user.update({
+            where: { id: req.user.id },
+            data: { passwordHash: newPasswordHash }
+        });
+
+        res.json({ message: 'تم تغيير كلمة السر بنجاح' });
+    } catch (err) {
+        console.error('Password change error:', err);
+        res.status(500).json({ error: 'حصل خطأ في السيرفر' });
+    }
+});
+
 module.exports = router;

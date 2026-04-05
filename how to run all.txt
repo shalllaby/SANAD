@@ -1,0 +1,75 @@
+# ========================================================
+# 🌙 SANAD — نظام رعاية كبار السن الذكي
+# دليل تشغيل المشروع بالكامل على جهازك الشخصي
+# ========================================================
+
+أهلاً بك! هذا الدليل سيوضح لك الخطوات اللازمة لتشغيل الـ Backend (Node.js) وكافة خدمات الذكاء الاصطناعي (AI Services) في وقت واحد.
+
+---
+
+### [ 🛠️ المتطلبات الأساسية ]
+1. Node.js (v18+) - لتشغيل السيرفر الأساسي.
+2. Python (3.9+) - لتشغيل موديلات الذكاء الاصطناعي.
+3. التيرمينال (Powershell أو Command Prompt أو Git Bash).
+
+---
+
+### [ 🏗️ الجزء الأول: تشغيل السيرفر والواجهة (Backend & Frontend) ]
+
+1. افتح تيرمينال جديد وادخل لمجلد السيرفر:
+   cd "e:\data pill\server"
+
+2. قم بتثبيت المكتبات المطلوبة:
+   npm install
+
+3. قم بإنشاء قاعدة البيانات (SQLite):
+   npx prisma db push
+
+4. ابدأ تشغيل السيرفر:
+   npm run dev
+
+* السيرفر والواجهة الآن متاحين على: http://localhost:5174
+
+---
+
+### [ 🧠 الجزء الثاني: تشغيل خدمات الذكاء الاصطناعي (AI Models) ]
+
+كل موديل يعمل كسيرفر منفصل (API) على Port مختلف. ستحتاج لفتح تيرمينال جديد لكل واحد:
+
+#### 1. موديل كشف السقوط (Fall Detection):
+   cd "e:\data pill\Models\Models\Fall Detection0"
+   pip install fastapi uvicorn ultralytics opencv-python httpx
+   python main.py
+   (يعمل على المنفذ: 8012)
+
+#### 2. موديل كشف الحريق والدخان (Fire Detection):
+   cd "e:\data pill\Models\Models\Fire"
+   # تثبيت المكتبات (نفس الخطوة السابقة)
+   uvicorn main:app --port 8013 --host 0.0.0.0
+   (يعمل على المنفذ: 8013)
+
+#### 3. موديل تحليل الحالة النفسية (Mood Detection):
+   cd "e:\data pill\Models\Models\Mood Detectio0"
+   uvicorn main:app --port 8014 --host 0.0.0.0
+   (يعمل على المنفذ: 8014)
+
+#### 4. موديل الفحص الصحي العام (General Health):
+   cd "e:\data pill\Models\Models\general_health"
+   pip install joblib pandas
+   uvicorn main:app --port 8015 --host 0.0.0.0
+   (يعمل على المنفذ: 8015)
+
+---
+
+### [ 📊 ملخص الروابط الهامة بعد التشغيل ]
+
+- الموقع الرئيسي (لوحة التحكم): http://localhost:5174
+- مختبر الـ API (لتجربة الموديلات): http://localhost:5174/api-lab.html
+- لوحة مراقبة الـ AI (Monitor): http://localhost:5174/dashboard-monitor.html
+
+---
+
+### [ ⚠️ ملاحظات هامة ]
+- تأكد من تشغيل السيرفر (Node.js) أولاً قبل الموديلات.
+- الـ API Key الموحد لربط الموديلات بالسيرفر هو: elderly-care-ai-api-key-2024 (موجود مسبقاً في الكود).
+- إذا واجهت مشكلة في "cv2" أو "YOLO"، تأكد من تثبيت 'opencv-python' و 'ultralytics' عبر pip.

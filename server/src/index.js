@@ -31,6 +31,7 @@ const messageRoutes = require('./routes/direct-messages');
 const calendarRoutes = require('./routes/calendar');
 const locationRoutes = require('./routes/location');
 
+
 app.use('/api/auth', authRoutes);
 app.use('/api/connections', connectionRoutes);
 app.use('/api/reminders', reminderRoutes);
@@ -41,6 +42,7 @@ app.use('/api/health', healthRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/location', locationRoutes);
+
 
 // ─── Connection page SPA route ────────────────────────────────────────────────
 app.get('/connect/:code', (req, res) => {

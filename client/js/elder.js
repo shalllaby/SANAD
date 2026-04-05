@@ -516,6 +516,75 @@ async function sendLocation() {
     }
 }
 
+// ─── Health AI Assessment ─────────────────────────────────────────────────────
+function openHealthModal() {
+    document.getElementById('healthModal').style.display = 'flex';
+}
+
+function closeHealthModal() {
+    document.getElementById('healthModal').style.display = 'none';
+}
+
+async function handleHealthSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('healthSubmitBtn');
+    const resultArea = document.getElementById('healthResultArea');
+
+    const data = {
+        age: Number(document.getElementById('healthAge').value),
+        weight: Number(document.getElementById('healthWeight').value),
+        height: Number(document.getElementById('healthHeight').value),
+        sleep: Number(document.getElementById('healthSleep').value),
+        exercise: document.getElementById('healthExercise').value,
+        sugar_intake: document.getElementById('healthSugar').value,
+        smoking: document.getElementById('healthSmoking').value,
+        alcohol: 'no', // Default 
+        married: document.getElementById('healthMarried').value
+    };
+
+    btn.disabled = true;
+    const oldText = btn.innerHTML;
+    btn.innerHTML = '<div class="spinner"></div> جاري التحليل...';
+    resultArea.style.display = 'none';
+
+    const user = getUser();
+    if (user && user.id) data.elder_id = user.id;
+
+    try {
+        // 1. Call AI Microservice (Now it sends the alert to SANAD itself since we added elder_id)
+        let res;
+        try {
+            res = await api.ai.predictHealth(data);
+        } catch (aiErr) {
+            console.error('AI Predict Failure:', aiErr);
+            throw new Error('AI_MODEL_FAILURE');
+        }
+
+        // 2. Map Prediction to UI
+        const isHigh = res.prediction === 'high';
+        resultArea.style.background = isHigh ? 'rgba(239, 68, 68, 0.2)' : 'rgba(34, 197, 94, 0.2)';
+        resultArea.style.color = isHigh ? '#FCA5A5' : '#86EFAC';
+        resultArea.style.border = `1px solid ${isHigh ? '#EF4444' : '#22C55E'}`;
+        resultArea.innerHTML = isHigh
+            ? "⚠️ لازم تزور الطبيب في اقرب وقت!<br><small style='font-size:0.8rem; font-weight: normal;'>المسؤول هيتبلغ ويتابع التقرير فوراً</small>"
+            : "✅ ما شاء الله! انت زي الفل مش محتاج تكشف ولا حاجة!<br><small style='font-size:0.8rem; font-weight: normal;'>الحمد لله حالتك مستقرة</small>";
+        resultArea.style.display = 'block';
+
+        showToast('تم تحليل حالتك بنجاح ووصل التقرير للمسؤول', 'success');
+
+    } catch (err) {
+        if (err.message === 'AI_MODEL_FAILURE') {
+            showToast('تعذر الاتصال بموديل الذكاء الاصطناعي — تأكد إنه شغال على منفذ 8013', 'error');
+        } else {
+            showToast('حدث خطأ غير متوقع أثناء العملية', 'error');
+            console.error(err);
+        }
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = oldText;
+    }
+}
+
 // ─── Logout ───────────────────────────────────────────────────────────────────
 function logout() {
     clearInterval(pollInterval);

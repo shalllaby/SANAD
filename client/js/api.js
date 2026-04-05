@@ -65,7 +65,8 @@ const api = {
         register: (data) => api.post('/auth/register', data),
         login: (data) => api.post('/auth/login', data),
         me: () => api.get('/auth/me'),
-        update: (data) => api.put('/auth/profile', data)
+        update: (data) => api.put('/auth/profile', data),
+        changePassword: (data) => api.put('/profile/password', data)
     },
 
     // Connections
@@ -99,7 +100,8 @@ const api = {
         manual: (data) => api.post('/alerts/manual', data),
         markRead: (id) => api.put(`/alerts/${id}/read`),
         readAll: () => api.put('/alerts/read-all'),
-        emergency: (data) => api.post('/alerts/emergency', data)
+        emergency: (data) => api.post('/alerts/emergency', data),
+        saveHealthAssessment: (data) => api.post('/alerts/health-assessment', data)
     },
 
     // Chat
@@ -135,6 +137,15 @@ const api = {
     location: {
         update: (latitude, longitude, accuracy) => api.post('/location/update', { latitude, longitude, accuracy }),
         get: (elderId) => api.get(`/location/elder/${elderId}`)
+    },
+
+    // AI Services (Direct microservice calls)
+    ai: {
+        predictHealth: (data) => fetch('http://localhost:8013/predict', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        }).then(res => res.json())
     }
 };
 

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Health Risk Monitor</title>
+
+<style>
+body { font-family: Arial; background: #f4f7fb; }
+.container { width: 90%; max-width: 900px; margin: 30px auto; }
+.card { background: white; padding: 20px; margin-bottom: 20px; border-radius: 12px; }
+input, select { width: 100%; padding: 10px; margin: 10px 0; }
+button { padding: 10px; border: none; border-radius: 8px; cursor: pointer; }
+.submit-btn { background: #2563eb; color: white; }
+.result-box { padding: 15px; border-radius: 10px; }
+.low { background: #d1fae5; }
+.high { background: #fee2e2; }
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+<div class="card">
+<h2>Enter Data</h2>
+
+<form id="form">
+
+<input type="number" id="age" placeholder="Age" required>
+
+<input type="number" id="weight" placeholder="Weight (kg)" step="0.1" required>
+
+<input type="number" id="height" placeholder="Height (cm)" step="0.1" required>
+
+<input type="number" id="sleep" placeholder="Sleep hours" step="0.1" required>
+
+<!-- 🔥 exercise بقى input -->
+<input type="text" id="exercise" placeholder="Exercise (none / sometimes / regular)" required>
+
+<select id="sugar">
+<option value="low">Low</option>
+<option value="medium">Medium</option>
+<option value="high">High</option>
+</select>
+
+<select id="smoking">
+<option value="no">No</option>
+<option value="yes">Yes</option>
+</select>
+
+<select id="alcohol">
+<option value="no">No</option>
+<option value="yes">Yes</option>
+</select>
+
+<select id="married">
+<option value="no">No</option>
+<option value="yes">Yes</option>
+</select>
+
+<!-- <input type="text" id="profession" placeholder="Profession" required> -->
+
+<button class="submit-btn" type="submit">Predict</button>
+
+</form>
+
+</div>
+
+<div class="card">
+<h2>Result</h2>
+<div id="result" class="result-box">No result</div>
+</div>
+
+<div class="card" style="display: flex; gap: 10px; margin-top: 20px;">
+<button onclick="runTest('low')" style="background: #10b981; color: white; flex: 1; font-weight: bold; padding: 15px; border-radius: 8px; cursor: pointer;">Test Low Risk ✅</button>
+<button onclick="runTest('high')" style="background: #ef4444; color: white; flex: 1; font-weight: bold; padding: 15px; border-radius: 8px; cursor: pointer;">Test High Risk ⚠️</button>
+</div>
+
+</div>
+
+<script>
+
+const API = window.location.origin;
+
+async function runTest(type) {
+    const elderId = prompt("أدخل معرف كبير السن (Elder ID) للمحاكاة:");
+    if (!elderId) return;
+
+    try {
+        const res = await fetch(`${API}/test/${type}?elder_id=${elderId}`);
+        const data = await res.json();
+        const box = document.getElementById("result");
+        box.className = "result-box " + data.prediction;
+        box.innerHTML = `<strong>[TEST MODE]</strong><br>Result: ${data.prediction}<br>Msg: ${data.message}`;
+        alert(`تم إرسال محاكاة ${type} بنجاح!`);
+    } catch (err) { alert("خطأ: " + err.message); }
+}
+
+function bmi(weight, height){
+  return weight / ((height/100) ** 2);
+}
+
+document.getElementById("form").onsubmit = async (e) => {
+  e.preventDefault();
+
+  const data = {
+    age: Number(age.value),
+    weight: Number(weight.value),
+    height: Number(height.value),
+    sleep: Number(sleep.value),
+    exercise: exercise.value.trim().toLowerCase(), // 🔥 مهم
+    sugar_intake: sugar.value,
+    smoking: smoking.value,
+    alcohol: alcohol.value,
+    married: married.value
+  };
+
+  try {
+    const res = await fetch(API + "/predict", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(data)
+    });
+
+    const result = await res.json();
+
+    const box = document.getElementById("result");
+
+    box.className = "result-box " + result.prediction;
+
+    box.innerHTML = `
+      Prediction: ${result.prediction}<br>
+      BMI: ${bmi(data.weight, data.height).toFixed(2)}<br>
+      Alert: ${result.alert ? "⚠️ YES" : "No"}
+    `;
+
+  } catch {
+    alert("API Error");
+  }
+};
+
+</script>
+
+</body>
+</html>

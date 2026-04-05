@@ -996,6 +996,7 @@
             <div class="nav-item active" onclick="switchTab('overview')">
                 <span class="nav-icon">📊</span> نظرة عامة
             </div>
+
             <div class="nav-item" onclick="switchTab('reminders')">
                 <span class="nav-icon">💊</span> التذكيرات
             </div>
@@ -1018,6 +1019,10 @@
             </div>
             <div class="nav-item" onclick="switchTab('reports')">
                 <span class="nav-icon">📈</span> التقارير
+            </div>
+
+            <div class="nav-item" onclick="switchTab('settings')">
+                <span class="nav-icon">⚙️</span> الإعدادات
             </div>
         </nav>
 
@@ -1237,6 +1242,130 @@
                         <p style="color:#94A3B8; text-align:center;">اختر كبير سن لعرض التقرير</p>
                     </div>
                 </div>
+
+                <!-- AI Health Assessment Report -->
+                <div class="card" id="aiHealthReportCard"
+                    style="display: none; border: 2px solid rgba(27, 95, 173, 0.2); background: rgba(27, 95, 173, 0.02);">
+                    <div class="card-header" style="border-bottom: 1px solid rgba(27, 95, 173, 0.1);">
+                        <div class="card-title"
+                            style="color: var(--primary); display: flex; align-items: center; gap: 0.5rem;">
+                            <span>🏥</span> تقييم نمط الحياة بالذكاء الاصطناعي
+                        </div>
+                    </div>
+                    <div id="aiHealthReportContent" style="padding: 1rem;">
+                        <!-- Content will be injected by monitor.js -->
+                        <p style="color:#94A3B8; text-align:center;">لا يوجد تقييم متاح حالياً</p>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- ═══════════════ Settings Tab ═══════════════ -->
+            <div class="tab-panel" id="tab-settings">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+
+                    <!-- Profile Card -->
+                    <div class="card"
+                        style="background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); border: 1px solid rgba(27, 95, 173, 0.1);">
+                        <div class="card-header">
+                            <div class="card-title" style="color:var(--primary);">👤 الملف الشخصي (Monitor)</div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label style="font-size:0.75rem; color:#64748B;">رقم المسؤول (Monitor ID)</label>
+                                <div
+                                    style="display:flex; gap:0.5rem; background:#F1F5F9; border-radius:var(--radius-md); padding:0.25rem;">
+                                    <input type="text" id="settingMonitorId" readonly
+                                        style="background:transparent; border:none; color:#1E293B; flex:1; font-family:monospace; font-size:0.85rem;" />
+                                    <button class="btn btn-sm" onclick="copyValue('settingMonitorId')"
+                                        style="padding:0.2rem 0.5rem; background:white; border:1px solid #E2E8F0; border-radius:var(--radius-sm); cursor:pointer;">📋</button>
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label style="font-size:0.75rem; color:#64748B;">رابط الربط (Direct Link)</label>
+                                <div
+                                    style="display:flex; gap:0.5rem; background:#F1F5F9; border-radius:var(--radius-md); padding:0.25rem;">
+                                    <input type="text" id="settingMonitorLink" readonly
+                                        style="background:transparent; border:none; color:#1E293B; flex:1; font-family:monospace; font-size:0.8rem;" />
+                                    <button class="btn btn-sm" onclick="copyValue('settingMonitorLink')"
+                                        style="padding:0.2rem 0.5rem; background:white; border:1px solid #E2E8F0; border-radius:var(--radius-sm); cursor:pointer;">📋</button>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>الاسم الكامل</label>
+                                <input type="text" id="settingMonitorName" placeholder="اسمك" />
+                            </div>
+                            <div class="form-group">
+                                <label>البريد الإلكتروني</label>
+                                <input type="text" id="settingMonitorEmail" readonly
+                                    style="background:#F1F5F9; color:#64748B; border:none;" />
+                            </div>
+                            <div class="form-group">
+                                <label>رقم الهاتف</label>
+                                <input type="text" id="settingMonitorPhone" placeholder="رقم الموبايل" />
+                            </div>
+                            <button class="btn btn-primary" onclick="updateMonitorProfile()"
+                                style="width:100%; padding:0.85rem;">حفظ التعديلات</button>
+                        </div>
+                    </div>
+
+                    <!-- Password Card -->
+                    <div class="card"
+                        style="background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); border: 1px solid rgba(27, 95, 173, 0.1);">
+                        <div class="card-header">
+                            <div class="card-title" style="color:var(--danger);">🔒 تغيير كلمة السر</div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                            <div class="form-group">
+                                <label>كلمة السر الحالية</label>
+                                <input type="password" id="settingOldPass" />
+                            </div>
+                            <div class="form-group">
+                                <label>كلمة السر الجديدة</label>
+                                <input type="password" id="settingNewPass" placeholder="6 حروف على الأقل" />
+                            </div>
+                            <div class="form-group">
+                                <label>تأكيد كلمة السر</label>
+                                <input type="password" id="settingConfirmPass" />
+                            </div>
+                            <button class="btn btn-danger" onclick="updateMonitorPassword()"
+                                style="width:100%; padding:0.85rem; background:#0E2240; color:white; border:none; cursor:pointer;">تغيير
+                                كلمة السر</button>
+                        </div>
+                    </div>
+
+                    <!-- Managed Elders Card -->
+                    <div class="card" style="grid-column: 1 / -1; border: 1px solid rgba(27, 95, 173, 0.1);">
+                        <div class="card-header">
+                            <div class="card-title" style="color:var(--primary);">👵👴 قائمة كبار السن المرتبطين بك
+                            </div>
+                        </div>
+                        <div style="overflow-x:auto;">
+                            <table style="width:100%; border-collapse: collapse; min-width:600px;">
+                                <thead style="background:#F8FAFC; border-bottom:2px solid #E2E8F0;">
+                                    <tr>
+                                        <th style="padding:1rem; text-align:right; font-size:0.8rem; color:#64748B;">
+                                            الاسم</th>
+                                        <th style="padding:1rem; text-align:right; font-size:0.8rem; color:#64748B;">ID
+                                            المسن (للمشاركة)</th>
+                                        <th style="padding:1rem; text-align:right; font-size:0.8rem; color:#64748B;">
+                                            رابط الربط</th>
+                                        <th style="padding:1rem; text-align:right; font-size:0.8rem; color:#64748B;">
+                                            تاريخ الانضمام</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="managedEldersList">
+                                    <tr style="text-align:center;">
+                                        <td colspan="4" style="padding:2rem; color:#94A3B8;">جاري التحميل...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
     </main>
@@ -1326,6 +1455,40 @@
                 <button class="btn btn-primary" onclick="saveCalendarEvent()">حفظ</button>
                 <button class="btn" onclick="closeModal('eventModal')"
                     style="background:#F1F5F9; border:1px solid #E2E8F0; color:#475569; font-family:var(--font); cursor:pointer;">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🎥 Video Evidence Modal -->
+    <div class="modal-overlay" id="videoModal">
+        <div class="modal-box"
+            style="max-width: 900px; padding: 0; overflow: hidden; background: #0F172A; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;">
+            <div
+                style="padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <h3
+                    style="color: white; margin: 0; display: flex; align-items: center; gap: 0.75rem; font-family: 'Outfit', sans-serif;">
+                    <span style="font-size: 1.5rem;">🚨</span> مشاهدة دليل الفيديو (AI Evidence)
+                </h3>
+                <button onclick="closeModal('videoModal')"
+                    style="background: none; border: none; color: #94A3B8; font-size: 1.8rem; cursor: pointer; transition: color 0.2s;"
+                    onmouseover="this.style.color='white'" onmouseout="this.style.color='#94A3B8'">&times;</button>
+            </div>
+            <div
+                style="padding: 1rem; background: #000; display: flex; justify-content: center; align-items: center; min-height: 400px; position: relative;">
+                <video id="evidenceVideo" controls
+                    style="width: 100%; max-height: 70vh; border-radius: 4px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+                    Your browser does not support the video tag.
+                </video>
+                <div id="videoLoading" style="position:absolute; color:white; display:none;">جاري تحميل الفيديو...</div>
+            </div>
+            <div
+                style="padding: 1.25rem; background: rgba(15, 23, 42, 0.9); display: flex; justify-content: space-between; align-items: center; color: #E2E8F0; border-top: 1px solid rgba(255,255,255,0.05);">
+                <div id="videoMeta" style="font-size: 0.85rem; color: #94A3B8; line-height: 1.5;">
+                    <!-- Filled dynamically -->
+                </div>
+                <button class="btn" onclick="closeModal('videoModal')"
+                    style="background: rgba(239, 68, 68, 0.1); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.2); padding: 0.6rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer;">إغلاق
+                    النافذة</button>
             </div>
         </div>
     </div>

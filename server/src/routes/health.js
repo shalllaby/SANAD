@@ -79,4 +79,32 @@ router.post('/', verifyApiKey, async (req, res) => {
     }
 });
 
+// ─── Push Mood Data from AI Service ──────────────────────────────────────────
+// Called by Mood Detection Python service after each analysis
+router.post('/mood', verifyApiKey, async (req, res) => {
+    try {
+        const { elderId, moodScore, moodLabel, source } = req.body;
+
+        if (!elderId || moodScore == null || !moodLabel) {
+            return res.status(400).json({ error: 'elderId و moodScore و moodLabel مطلوبين' });
+        }
+
+        const record = await prisma.healthData.create({
+            data: {
+                elderId,
+                moodScore: parseFloat(moodScore),
+                moodLabel,
+                source: source || 'MOOD_DETECTION',
+            }
+        });
+
+        console.log(`😊 Mood recorded for elder ${elderId}: ${moodLabel} (${moodScore})`);
+        res.status(201).json({ message: 'تم تسجيل الحالة المزاجية', record });
+    } catch (err) {
+        console.error('Mood record error:', err);
+        res.status(500).json({ error: 'حصل خطأ في السيرفر' });
+    }
+});
+
 module.exports = router;
+

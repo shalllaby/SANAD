@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SANAD API Console — مختبر المطورين</title>
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="stylesheet" href="/css/global.css" />
+    <style>
+        :root {
+            --bg-dark: #0F172A;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --accent: #38BDF8;
+            --success: #22C55E;
+            --danger: #EF4444;
+            --text-muted: #94A3B8;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image:
+                radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.05) 0px, transparent 50%);
+            color: #F8FAFC;
+            min-height: 100vh;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            letter-spacing: 1px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin: 0;
+            background: linear-gradient(to bottom right, #FFFFFF, #94A3B8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* ID Input Card */
+        .id-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        .id-input-wrapper {
+            position: relative;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .id-input {
+            flex: 1;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1.5px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            color: var(--accent);
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .id-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.1);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 12px;
+            color: var(--text-muted);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+        }
+
+        .tab-btn.active {
+            background: rgba(56, 189, 248, 0.1);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Action Panel */
+        .action-panel {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            min-height: 300px;
+            display: none;
+        }
+
+        .action-panel.active {
+            display: block;
+            animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .panel-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Upload Zone */
+        .upload-zone {
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--accent);
+            background: rgba(56, 189, 248, 0.03);
+        }
+
+        /* Control Buttons */
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .api-btn {
+            padding: 0.8rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: #F8FAFC;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .api-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .api-btn.danger {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+            color: #FDA4AF;
+        }
+
+        .api-btn.danger:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Console Log */
+        .console-log {
+            background: #020617;
+            border-radius: 12px;
+            margin-top: 2rem;
+            padding: 1rem;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.85rem;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .log-entry {
+            margin-bottom: 0.5rem;
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .log-time {
+            color: var(--text-muted);
+        }
+
+        .log-tag {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .log-msg {
+            color: #CBD5E1;
+        }
+
+        .log-error {
+            color: var(--danger);
+        }
+
+        .log-success {
+            color: var(--success);
+        }
+
+        /* Loader */
+        .loader {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(56, 189, 248, 0.3);
+            border-top: 2px solid var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: none;
+            margin: 1rem auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Navigation Link to Home */
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-top: 2rem;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: white;
+        }
+
+        /* Status Lamp Indicator */
+        .status-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            justify-content: center;
+        }
+
+        .status-lamp {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+            animation: pulse-green 1.5s infinite;
+        }
+
+        .status-lamp.danger {
+            background: var(--danger);
+            box-shadow: 0 0 15px var(--danger);
+            animation: pulse-red 1s infinite;
+        }
+
+        @keyframes pulse-green {
+            0% {
+                opacity: 0.4;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.4;
+            }
+        }
+
+        @keyframes pulse-red {
+            0% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="badge">API TESTING LABORATORY</div>
+            <h1>SANAD Intelligence Engine</h1>
+            <p style="color: var(--text-muted); margin-top: 0.5rem;">أداة المطورين للاختبار المباشر لخدمات الذكاء
+                الاصطناعي</p>
+        </header>
+
+        <!-- Step 1: Elder ID Selection -->
+        <section class="id-card">
+            <div class="input-group">
+                <label>🔹 الخطوة الأولى: تحديد معرف المسن المستهدف (Target Elder ID)</label>
+                <div class="id-input-wrapper">
+                    <input type="text" id="targetId" class="id-input" placeholder="Paste Elder ID here (e.g. clx9u...)"
+                        value="d6c52899-acb7-41b0-afa6-a260e187ab49" />
+                </div>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 1rem;">* هذا المعرف هو الذي سيتم
+                    إرسال التنبيهات والبيانات إليه في النظام المركزي.</p>
+            </div>
+        </section>
+
+        <!-- Step 2: Service Selection -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchLab('fall')">🧍 Fall Detection</button>
+            <button class="tab-btn" onclick="switchLab('fire')">🔥 Fire & Smoke</button>
+            <button class="tab-btn" onclick="switchLab('mood')">😊 Mood Analysis</button>
+        </div>
+
+        <!-- Service Panels -->
+        <!-- FALL -->
+        <div id="panel-fall" class="action-panel active">
+            <div class="panel-header">
+                <div class="panel-title"><span>🚨</span> Fall Detection Service</div>
+                <div class="endpoint-badge" style="font-size: 0.7rem; color: var(--accent);">PORT: 8012</div>
+            </div>
+
+            <div class="upload-zone" id="upload-fall" onclick="triggerFile('fall')">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">📁</div>
+                <div style="font-weight: 600;">ارفق فيديو للسقوط (Analyze)</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">سيقوم الموديل بمعالجة الفيديو حقيقياً</div>
+            </div>
+
+            <div id="preview-fall"
+                style="display: none; margin-bottom: 1.5rem; border-radius: 12px; overflow: hidden; background: #000; border: 1.5px solid var(--danger);">
+            </div>
+
+            <div class="btn-grid">
+                <button class="api-btn danger" onclick="simulate('fall', '/test/fall', 'Fall Alert')">
+                    <span>⚡ Simulation</span>
+                    <span style="font-size: 0.7rem;">ارسال تنبيه سقوط تجريبي</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- FIRE -->
+        <div id="panel-fire" class="action-panel">
+            <div class="panel-header">
+                <div class="panel-title"><span>🔥</span> Fire & Smoke Intelligence</div>
+                <div class="endpoint-badge" style="font-size: 0.7rem; color: var(--accent);">PORT: 8013</div>
+            </div>
+
+            <div class="upload-zone" id="upload-fire" onclick="triggerFile('fire')">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">📸</div>
+                <div style="font-weight: 600;">ارفق صورة أو فيديو للحريق</div>
+            </div>
+
+            <div id="preview-fire"
+                style="display: none; margin-bottom: 1.5rem; border-radius: 12px; overflow: hidden; background: #000; border: 1.5px solid var(--danger);">
+            </div>
+
+            <div class="btn-grid">
+                <button class="api-btn danger" onclick="simulate('fire', '/test/fire', 'Fire Alert')">🔥 Fire
+                    Test</button>
+                <button class="api-btn danger" onclick="simulate('fire', '/test/smoke', 'Smoke Alert')">💨 Smoke
+                    Test</button>
+                <button class="api-btn danger" onclick="simulate('fire', '/test/fire_smoke', 'Fire & Smoke')">🔥💨 Fire
+                    & Smoke
+                    Test</button>
+                <button class="api-btn" onclick="simulate('fire', '/test/safe', 'Safe Test')">✅ Safe Test</button>
+            </div>
+        </div>
+
+        <!-- MOOD -->
+        <div id="panel-mood" class="action-panel">
+            <div class="panel-header">
+                <div class="panel-title"><span>😊</span> Emotion Analysis API</div>
+                <div class="endpoint-badge" style="font-size: 0.7rem; color: var(--accent);">PORT: 8014</div>
+            </div>
+
+            <div class="upload-zone" id="upload-mood" onclick="triggerFile('mood')">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">👨</div>
+                <div style="font-weight: 600;">تحليل تعبيرات الوجه</div>
+            </div>
+
+            <div id="preview-mood"
+                style="display: none; margin-bottom: 1.5rem; border-radius: 12px; overflow: hidden; background: #000; border: 1.5px solid var(--accent);">
+            </div>
+
+            <div class="btn-grid">
+                <button class="api-btn" onclick="simulate('mood', '/test/happy', 'Happy')">😊 Happy</button>
+                <button class="api-btn" onclick="simulate('mood', '/test/natural', 'Natural')">😐 Neutral</button>
+                <button class="api-btn" onclick="simulate('mood', '/test/surprise', 'Surprise')">😲 Surprise</button>
+                <button class="api-btn danger" onclick="simulate('mood', '/test/disgust', 'Disgust')">🤮
+                    Disgust</button>
+                <button class="api-btn danger" onclick="simulate('mood', '/test/sad', 'Sad')">😢 Sad</button>
+                <button class="api-btn danger" onclick="simulate('mood', '/test/angry', 'Angry')">😡 Angry</button>
+            </div>
+        </div>
+
+        <!-- Console & Global Result -->
+        <div class="card"
+            style="background: var(--card-bg); border-radius: 20px; padding: 2rem; border: 1px solid rgba(255,255,255,0.05);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-weight: 700; color: var(--accent);">TERMINAL LOGS</div>
+                <button onclick="clearLogs()"
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.8rem;">Clear
+                    Console</button>
+            </div>
+
+            <div id="loader" class="loader"></div>
+
+            <div id="console" class="console-log">
+                <div class="log-entry">
+                    <span class="log-time">[SYSTEM]</span>
+                    <span class="log-tag">READY</span>
+                    <span class="log-msg">Waiting for API request...</span>
+                </div>
+            </div>
+
+            <div id="visualResult" style="margin-top: 1.5rem; display: none;">
+                <div id="resBadge" class="badge" style="width: 100%; text-align: center; margin-bottom: 1rem;">RESULT
+                    MAPPING</div>
+                <div id="mediaBox"
+                    style="width: 100%; border-radius: 12px; overflow: hidden; background: #000; border: 1px solid rgba(255,255,255,0.1);">
+                </div>
+            </div>
+        </div>
+
+        <input type="file" id="hiddenInput" style="display: none;" onchange="handleFileUpload(event)" />
+
+        <a href="/dashboard-monitor.html" class="nav-link">
+            <span>←</span> العودة للوحة تحكم المراقب
+        </a>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script>
+        const AI_PORTS = { fall: 8012, fire: 8013, mood: 8014 };
+        let currentLab = 'fall';
+
+        function switchLab(type) {
+            currentLab = type;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.action-panel').forEach(p => p.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(`panel-${type}`).classList.add('active');
+            addLog('SYSTEM', `Switched to ${type.toUpperCase()} service panel.`, 'info');
+        }
+
+        function addLog(tag, msg, type = '') {
+            const console = document.getElementById('console');
+            const time = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `
+                <span class="log-time">[${time}]</span>
+                <span class="log-tag">${tag}</span>
+                <span class="log-msg ${type === 'error' ? 'log-error' : (type === 'success' ? 'log-success' : '')}">${msg}</span>
+            `;
+            console.prepend(entry);
+        }
+
+        function clearLogs() {
+            document.getElementById('console').innerHTML = '';
+            document.getElementById('visualResult').style.display = 'none';
+        }
+
+        function triggerFile(service) {
+            document.getElementById('hiddenInput').click();
+        }
+
+        async function simulate(service, endpoint, label) {
+            const elderId = document.getElementById('targetId').value.trim();
+            if (!elderId) {
+                addLog('ERROR', 'Target Elder ID is required for API push.', 'error');
+                return;
+            }
+
+            const loader = document.getElementById('loader');
+            loader.style.display = 'block';
+            addLog('REQUEST', `Pushing ${label} to ${service} service...`);
+
+            try {
+                const url = `http://localhost:${AI_PORTS[service]}${endpoint}?elder_id=${elderId}`;
+                const res = await fetch(url, { method: 'POST' });
+                const data = await res.json();
+
+                addLog('RESPONSE', `Successfully sent ${label} simulation. Alert triggered on backend.`, 'success');
+
+                if (data.video_url || data.image_url) {
+                    showVisual(data, service);
+                }
+            } catch (err) {
+                addLog('FATAL', `Service connection failed at port ${AI_PORTS[service]}. Is Python running?`, 'error');
+            } finally {
+                loader.style.display = 'none';
+            }
+        }
+
+        function showVisual(data, service) {
+            const previewBox = document.getElementById(`preview-${service}`);
+            const uploadZone = document.getElementById(`upload-${service}`);
+
+            if (!previewBox) {
+                // Fallback to global if panel preview not found
+                const box = document.getElementById('visualResult');
+                const mediaBox = document.getElementById('mediaBox');
+                box.style.display = 'block';
+                mediaBox.innerHTML = '';
+                const baseUrl = `http://localhost:${AI_PORTS[service]}`;
+                const url = baseUrl + (data.video_url || data.image_url);
+                if (data.video_url) mediaBox.innerHTML = `<video src="${url}" controls autoplay style="width:100%"></video>`;
+                else mediaBox.innerHTML = `<img src="${url}" style="width:100%" />`;
+                return;
+            }
+
+            previewBox.style.display = 'block';
+            previewBox.innerHTML = '';
+
+            const baseUrl = `http://localhost:${AI_PORTS[service]}`;
+            const url = baseUrl + (data.video_url || data.image_url);
+
+            // Determine if it's danger
+            let isDanger = false;
+            let statusText = "SAFE / CLEAR";
+
+            if (service === 'fall' && data.fall_detected) { isDanger = true; statusText = "DANGER: FALL DETECTED"; }
+            else if (service === 'fire' && data.alarm) { isDanger = true; statusText = `DANGER: ${data.alarm_type.toUpperCase()}`; }
+            else if (service === 'mood' && data.status === 'risk') { isDanger = true; statusText = `DANGER: PSYCHOLOGICAL RISK`; }
+
+            // Lamp Markup for results
+            previewBox.innerHTML = `
+                <div class="status-container">
+                    <div id="lamp-${service}" class="status-lamp ${isDanger ? 'danger' : ''}"></div>
+                    <span id="statText-${service}" style="color: ${isDanger ? 'var(--danger)' : 'var(--success)'}">${statusText}</span>
+                </div>
+            `;
+
+            if (data.video_url) {
+                previewBox.innerHTML += `<video src="${url}" controls autoplay style="width:100%"></video>`;
+            } else {
+                previewBox.innerHTML += `<img src="${url}" style="width:100%" />`;
+            }
+
+            // Optional: Bring it into focus
+            previewBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const elderId = document.getElementById('targetId').value.trim();
+            if (!elderId) { alert('Elder ID is required'); return; }
+
+            addLog('UPLOADER', `Selected ${file.name}. Generating preview...`);
+
+            // 1. Show immediate local preview with Green Lamp
+            const previewBox = document.getElementById(`preview-${currentLab}`);
+            previewBox.style.display = 'block';
+            previewBox.innerHTML = `
+                <div class="status-container">
+                    <div id="lamp-${currentLab}" class="status-lamp"></div>
+                    <span id="statText-${currentLab}" style="color:var(--success);">SYSTEM READY / PROCESSING_</span>
+                </div>
+            `;
+
+            const localUrl = URL.createObjectURL(file);
+            if (file.type.startsWith('video')) {
+                previewBox.innerHTML += `<div style="text-align:center; font-size:0.7rem; color:var(--text-muted); padding:0.5rem;">[ORIGINAL FILE]</div>
+                                        <video src="${localUrl}" controls style="width:100%; opacity: 0.5;"></video>`;
+            } else {
+                previewBox.innerHTML += `<img src="${localUrl}" style="width:100%; opacity: 0.5;" />`;
+            }
+            previewBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // 2. Start Analytics
+            addLog('ANALYTICS', `Starting AI analysis mission for ${currentLab}...`);
+            const loader = document.getElementById('loader');
+            loader.style.display = 'block';
+
+            const port = AI_PORTS[currentLab];
+            const isVideo = file.type.startsWith('video');
+
+            // Determine Endpoint
+            let endpoint = "";
+            if (currentLab === 'fall') endpoint = `/detect/video`;
+            else if (currentLab === 'fire') endpoint = isVideo ? `/detect/video` : `/detect/image`;
+            else if (currentLab === 'mood') endpoint = isVideo ? `/detect/emotion/video` : `/detect/emotion/image`;
+
+            try {
+                const formData = new FormData();
+                formData.append("file", file);
+
+                const res = await fetch(`http://localhost:${port}${endpoint}?elder_id=${elderId}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+
+                addLog('ANALYTICS', `Processing complete. Result: ${JSON.stringify(data)}`, 'success');
+
+                // 3. Replace with processed result (Lamp will update inside showVisual)
+                showVisual(data, currentLab);
+
+            } catch (err) {
+                addLog('ERROR', `Failed to process media. Check Python console at port ${port}`, 'error');
+                const lamp = document.getElementById(`lamp-${currentLab}`);
+                if (lamp) lamp.className = 'status-lamp danger';
+                const text = document.getElementById(`statText-${currentLab}`);
+                if (text) { text.textContent = 'SERVICE ERROR'; text.style.color = 'var(--danger)'; }
+            } finally {
+                loader.style.display = 'none';
+                URL.revokeObjectURL(localUrl); // Clean up memory
+            }
+        }
+
+        // Init Check
+        window.onload = () => {
+            const user = getUser();
+            if (user) addLog('AUTH', `Active Session: ${user.name} (${user.role})`, 'success');
+        };
+    </script>
+</body>
+
+</html>

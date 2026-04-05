@@ -837,6 +837,19 @@
         </div>
 
         <!-- Past Alerts -->
+        <!-- Health Section -->
+        <div class="section-elder animate-fade-in" style="margin-top: 1rem;">
+            <div class="section-elder-title">
+                <span>🏥</span> صحتِك تهمنا (فحص سريع)
+            </div>
+            <div class="reminder-card" style="border-color: var(--primary); background: rgba(27, 95, 173, 0.05);">
+                <span class="reminder-emoji">👨‍⚕️</span>
+                <div class="reminder-title-big">فحص الصحة بالذكاء الاصطناعي</div>
+                <div class="reminder-desc-big">سجل بياناتك البسيطة وموديل الذكاء الاصطناعي هيقولك حالتك الصحية بالظبط!</div>
+                <button class="btn btn-primary btn-elder" onclick="openHealthModal()" style="width: 100%;">ابدأ الفحص الآن</button>
+            </div>
+        </div>
+
         <div class="section-elder" id="alertsSection" style="display:none;">
             <div class="section-elder-title">🚨 التنبيهات</div>
             <div id="elderAlertsList"></div>
@@ -887,6 +900,84 @@
             🤖
             <span class="fab-tooltip">مساعد سند الذكي</span>
         </button>
+    </div>
+
+    <!-- Health Assessment Modal -->
+    <div id="healthModal" class="chat-backdrop" style="display: none; align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+        <div class="auth-card animate-slide-up" style="width: 100%; max-width: 450px; padding: 1.5rem; max-height: 90vh; overflow-y: auto; background: #0F1E34; border: 2px solid var(--primary); position: relative;">
+            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="color: white; margin: 0; font-size: 1.4rem;">🏥 فحص الصحة الذكي</h2>
+                <button onclick="closeHealthModal()" style="background:none; border:none; color: #94A3B8; font-size: 1.5rem; cursor:pointer;">✕</button>
+            </div>
+
+            <form id="healthAssessmentForm" onsubmit="handleHealthSubmit(event)">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 0.85rem;">السن</label>
+                        <input type="number" id="healthAge" class="form-input" placeholder="65" required>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 0.85rem;">الوزن (كيلو)</label>
+                        <input type="number" id="healthWeight" class="form-input" placeholder="80" step="0.1" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 0.85rem;">الطول (سم)</label>
+                        <input type="number" id="healthHeight" class="form-input" placeholder="170" step="1" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">نمت كام ساعة إمبارح؟ 😴</label>
+                    <input type="number" id="healthSleep" class="form-input" placeholder="عدد الساعات" step="0.5" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">بتمارس رياضة؟ 🏃‍♂️</label>
+                    <select id="healthExercise" class="form-input" required>
+                        <option value="none">مفيش خالص</option>
+                        <option value="sometimes">أحياناً</option>
+                        <option value="regular">بانتظام</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">استهلاك السكر؟ 🍬</label>
+                    <select id="healthSugar" class="form-input" required>
+                        <option value="low">قليل</option>
+                        <option value="medium">متوسط</option>
+                        <option value="high">كتير</option>
+                    </select>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div class="form-group">
+                        <label class="form-label">مدخن؟ 🚭</label>
+                        <select id="healthSmoking" class="form-input" required>
+                            <option value="no">لا</option>
+                            <option value="yes">نعم</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">متزوج؟ 💍</label>
+                        <select id="healthMarried" class="form-input" required>
+                            <option value="yes">نعم</option>
+                            <option value="no">لا</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="healthResultArea" style="display: none; margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md); text-align: center; font-size: 1.1rem; font-weight: 700; line-height: 1.6;"></div>
+
+                <button type="submit" id="healthSubmitBtn" class="btn btn-primary btn-block btn-lg" style="margin-top: 1.5rem;">
+                    <span>تحليل حالتي الآن ✨</span>
+                </button>
+
+                <p style="text-align:center; color:#64748B; font-size:0.75rem; margin-top:1rem;">نتائج الذكاء الاصطناعي هي تقييم لنمط الحياة وليست بديلاً عن تشخيص الطبيب.</p>
+            </form>
+        </div>
     </div>
 
     <div id="toast-container" class="toast-container"></div>

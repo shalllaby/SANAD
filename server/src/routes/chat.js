@@ -31,17 +31,32 @@ router.post('/message', authenticate, async (req, res) => {
             }
         });
 
-        // ── AI INTEGRATION PLACEHOLDER ──────────────────────────────────────────
-        // TODO: When SANAD AI service is ready, replace this section with:
-        //   const aiResponse = await fetch(process.env.SANAD_API_URL, {
-        //     method: 'POST',
-        //     headers: { 'Authorization': `Bearer ${process.env.SANAD_API_KEY}` },
-        //     body: JSON.stringify({ userId: req.user.id, message: content })
-        //   });
-        //   const { reply } = await aiResponse.json();
-        // ────────────────────────────────────────────────────────────────────────
+        // ── AI INTEGRATION (CareCompanion All-in-One Server) ───────────────────────
+        const AI_SERVER_URL = "https://unslakable-unplacid-anton.ngrok-free.dev/chat";
+        
+        let botReply = 'عفواً، السيرفر الذكي غير متصل الآن. حاول تاني! 😔';
+        let isPlaceholder = true;
 
-        const botReply = PLACEHOLDER_RESPONSES[Math.floor(Math.random() * PLACEHOLDER_RESPONSES.length)];
+        try {
+            const aiResponse = await fetch(AI_SERVER_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: content.trim() })
+            });
+
+            if (aiResponse.ok) {
+                const data = await aiResponse.json();
+                if (data.success && data.reply) {
+                    botReply = data.reply;
+                    isPlaceholder = false;
+                }
+            }
+        } catch (err) {
+            console.error('AI Service Error:', err.message);
+            // Fallback to placeholder if AI is down
+            botReply = PLACEHOLDER_RESPONSES[Math.floor(Math.random() * PLACEHOLDER_RESPONSES.length)];
+        }
+        // ────────────────────────────────────────────────────────────────────────
 
         // Save bot response
         const botMessage = await prisma.chatMessage.create({
@@ -55,8 +70,9 @@ router.post('/message', authenticate, async (req, res) => {
         res.json({
             userMessage,
             botMessage,
-            isPlaceholder: true
+            isPlaceholder
         });
+
     } catch (err) {
         console.error('Chat error:', err);
         res.status(500).json({ error: 'حصل خطأ في السيرفر' });

@@ -230,16 +230,127 @@
             pointer-events: none;
         }
 
-        .placeholder-banner {
-            background: rgba(245, 166, 35, 0.1);
-            border: 1px solid rgba(245, 166, 35, 0.25);
+        /* WhatsApp-style Audio Player */
+        .audio-player {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 12px;
+            border-radius: var(--radius-md);
+            margin-top: 8px;
+            min-width: 220px;
+            user-select: none;
+        }
+
+        .audio-controls {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+            transition: var(--transition);
+        }
+
+        .audio-controls:hover {
+            transform: scale(1.1);
+        }
+
+        .audio-progress-container {
+            flex: 1;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .audio-progress-bar {
+            height: 100%;
+            background: var(--primary-light);
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .audio-time {
+            font-size: 0.7rem;
+            color: #94A3B8;
+            min-width: 35px;
+        }
+
+
+        .mic-btn {
+            width: 52px;
+            height: 52px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1.5px solid rgba(255, 255, 255, 0.08);
+            color: #94A3B8;
+            font-size: 1.25rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .mic-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary-light);
+            background: rgba(27, 95, 173, 0.1);
+        }
+
+        .mic-btn.recording {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: #EF4444;
+            color: #EF4444;
+            animation: pulse-red 1.5s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+
+        .status-banner {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
             border-radius: var(--radius-md);
             padding: 0.75rem 1rem;
             text-align: center;
-            font-size: 0.8rem;
-            color: var(--accent-light);
+            font-size: 0.85rem;
+            color: #10B981;
             margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
+
+        .status-banner.offline {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+            color: #EF4444;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: currentColor;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
 
         .back-btn {
             background: none;
@@ -309,7 +420,9 @@
                 <div style="font-size:1.1rem; font-weight:800; color: #F1F5F9;">SANAD - سند</div>
                 <div class="bot-status">متاح دائماً</div>
             </div>
+            <button id="voiceToggle" class="back-btn" onclick="toggleVoice()" style="margin-left: 1rem;" title="تفعيل/تعطيل الصوت">🔊</button>
             <button class="back-btn" onclick="history.back()">✕</button>
+
         </div>
 
         <div id="chatMessages" class="chat-messages">
@@ -327,16 +440,20 @@
                     <button class="suggestion-chip" onclick="sendQuick('وين أقرب مستشفى؟')">🏥 مستشفيات</button>
                 </div>
             </div>
-            <div class="placeholder-banner">
-                🔬 SANAD - سند في طور التطوير — الردود الحالية هي نماذج تجريبية
+            <div id="serverStatus" class="status-banner animate-fade-in">
+                <div class="status-dot"></div>
+                جاري التحقق من اتصال سند...
             </div>
+
         </div>
 
         <div class="chat-input-area">
             <div class="chat-input-row">
-                <textarea id="chatInput" class="chat-textarea" placeholder="اكتب رسالتك لسند..." rows="1"
+                <button class="mic-btn" id="micBtn" onclick="toggleSTT()" title="تحدث لسند">🎤</button>
+                <textarea id="chatInput" class="chat-textarea" placeholder="اكتب رسالتك أو تحدث لسند..." rows="1"
                     onkeydown="handleKeydown(event)" oninput="autoResize(this)"></textarea>
                 <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="إرسال">➤</button>
+
             </div>
         </div>
     </div>

@@ -113,6 +113,29 @@ router.post('/emergency', authenticate, requireRole('ELDER'), async (req, res) =
     }
 });
 
+// ─── Save Health AI Assessment (Elder) ─────────────────────────────────────────
+router.post('/health-assessment', authenticate, requireRole('ELDER'), async (req, res) => {
+    try {
+        const { prediction, message, severity, metadata } = req.body;
+
+        const alert = await prisma.alert.create({
+            data: {
+                elderId: req.user.id,
+                type: 'HEALTH',
+                message: message || `تقييم صحي جديد: ${prediction}`,
+                severity: severity || 'MEDIUM',
+                source: 'HEALTH_PREDICTION',
+                metadata: metadata ? JSON.stringify(metadata) : null
+            }
+        });
+
+        res.status(201).json({ message: 'تم حفظ التقييم بنجاح', alert });
+    } catch (err) {
+        console.error('Health assessment save error:', err);
+        res.status(500).json({ error: 'حصل خطأ في السيرفر' });
+    }
+});
+
 // ─── Get Alerts (Monitor) ─────────────────────────────────────────────────────
 router.get('/', authenticate, requireRole('MONITOR'), async (req, res) => {
     try {
