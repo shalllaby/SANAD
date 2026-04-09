@@ -24,7 +24,7 @@ app.add_middleware(
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
-    print("❌ [422 ERROR] Validation failed:")
+    print(f"[422 ERROR] Validation failed:")
     print(exc.errors())
     print("Received body was:", await request.body())
     return JSONResponse(
@@ -53,11 +53,11 @@ async def send_alert_to_sanad(elder_id: str, message: str, prediction: str, meta
         async with httpx.AsyncClient(timeout=5) as client:
             r = await client.post(f"{SANAD_SERVER_URL}/api/alerts", json=payload, headers=headers)
             if r.status_code == 201:
-                print(f"✅ [SANAD] HEALTH alert sent - Success")
+                print(f"[SANAD] HEALTH alert sent - Success")
             elif r.status_code == 404:
-                print(f"❌ [SANAD] ERROR 404: ID ({elder_id}) not found on server. Ensure elder exists in DB.")
+                print(f"[SANAD] ERROR 404: ID ({elder_id}) not found on server. Ensure elder exists in DB.")
             else:
-                print(f"⚠️ [SANAD] HEALTH alert sent - status {r.status_code}")
+                print(f"[SANAD] HEALTH alert sent - status {r.status_code}")
                 print(f"   Response: {r.text}")
     except Exception as e:
         print(f"[SANAD] Could not reach server: {e}")
@@ -122,29 +122,30 @@ async def predict(data: HealthInput, elder_id: Optional[str] = None):
     # 🔍 استخراج الـ ID: الأولوية للي جاي في الـ URL تم للي في الـ Body
     final_id = elder_id or data_dict.get("elder_id")
     
-    print(f"📥 [REQUEST] Data received. Elder ID: {final_id}")
+    print(f"[REQUEST] Data received. Elder ID: {final_id}")
     
     # تنظيف البيانات قبل الحساب
     data_dict.pop("elder_id", None)
     data_dict["profession"] = "retired"
 
-    # 🔥 حساب BMI
+    # حساب BMI
     data_dict["bmi"] = calculate_bmi(
         data_dict["weight"], data_dict["height"]
     )
 
-    # 🔥 تحويل لـ DataFrame
+    # تحويل لـ DataFrame
     df = pd.DataFrame([data_dict])
 
-    # 🔥 prediction
+    # prediction
     try:
         prediction = pipeline.predict(df)[0]
         result = interpret(prediction)
     except Exception as e:
-        print(f"❌  Error during prediction: {e}")
+        print(f"Error during prediction: {e}")
         # Fallback to random choice so the system doesn't crash
+        import random
         result = random.choice(["high", "low"])
-        print(f"⚠️  Falling back to manual decision: {result}")
+        print(f"Falling back to manual decision: {result}")
 
     # 📝 تسجيل
     record = {

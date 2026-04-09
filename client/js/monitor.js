@@ -261,7 +261,7 @@ async function loadAlerts() {
         // Audio on new alerts
         if (prevAlertCount >= 0 && unread > prevAlertCount) {
             if (typeof playAlertSound === 'function') playAlertSound();
-            
+
             // 🔥 REAL-TIME SYNC: If new alert is MOOD, reload reports/management
             const latestAlert = alerts[0];
             if (latestAlert && latestAlert.type === 'MOOD' && latestAlert.elderId === selectedElderId) {
